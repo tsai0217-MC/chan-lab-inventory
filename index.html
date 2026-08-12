@@ -307,6 +307,36 @@
                 padding: 20px;
             }
         }
+        .rules-title {
+            cursor: pointer;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--blue-dark);
+        }
+
+        .rules-content {
+            margin-top: 22px;
+            line-height: 1.65;
+        }
+
+        .rules-content h3 {
+            margin-top: 24px;
+            margin-bottom: 8px;
+            color: var(--blue-dark);
+        }
+
+        .rules-content ul {
+            padding-left: 22px;
+        }
+
+        .rules-content li {
+            margin-bottom: 8px;
+        }
+
+        .rules-content a {
+            color: var(--blue-dark);
+            font-weight: 600;
+        }
     </style>
 </head>
 
@@ -341,7 +371,134 @@
             </p>
 
         </div>
+        <section class="card">
 
+                <details>
+
+                    <summary class="rules-title">
+                        📘 Buffer Tracking System — Guidelines & Instructions
+                    </summary>
+
+                    <div class="rules-content">
+
+                        <h3>Authorized Use</h3>
+
+                        <p>
+                            This system is intended exclusively for members of the
+                            Genentech BCP Chan Lab. Unauthorized access or misuse is prohibited.
+                        </p>
+
+
+                        <h3>What This System Tracks</h3>
+
+                        <p>
+                            This system tracks the inventory of reagents used for
+                            <strong>22F12 and PSR</strong>, including
+                            A4806, A4807, A4808, A4809, A4810, A4811, A3323, and TMB.
+                            Additional reagents may be added as needed.
+                        </p>
+
+
+                        <h3>Storage & Registration</h3>
+
+                        <p>
+                            Buffers are currently stored in three locations:
+                        </p>
+
+                        <ul>
+                            <li>
+                                <strong>422255</strong> — Chan Lab 4°C Refrigerator
+                            </li>
+
+                            <li>
+                                <strong>423328</strong> — Cold Room
+                            </li>
+
+                            <li>
+                                <strong>423360</strong> — Hallway Refrigerator
+                                (Delivery Location: 48-1150)
+                            </li>
+                        </ul>
+
+                        <p>
+                            Newly delivered buffers are initially stored in the
+                            <strong>423360 hallway refrigerator</strong>
+                            and are not yet considered registered inventory.
+                            When a buffer is transferred from the hallway refrigerator
+                            to either 422255 or 423328, it must be added to the tracking
+                            system as <strong>New Stock</strong>.
+                        </p>
+
+
+                        <h3>When to Update the System</h3>
+
+                        <ul>
+                            <li>
+                                New buffer added to registered inventory →
+                                <strong>New Stock</strong>
+                            </li>
+
+                            <li>
+                                A bottle is opened →
+                                <strong>Open Bottle</strong>
+                            </li>
+
+                            <li>
+                                A bottle is completely used →
+                                <strong>Finished Bottle</strong>
+                            </li>
+
+                            <li>
+                                A bottle is discarded due to expiration →
+                                <strong>Expired</strong>
+                            </li>
+
+                            <li>
+                                Inventory is manually counted →
+                                <strong>Physical Count</strong>
+                            </li>
+
+                            <li>
+                                An incorrect entry needs to be corrected →
+                                <strong>Input Error Correction</strong>
+                            </li>
+                        </ul>
+
+
+                        <h3>Adding a New Reagent</h3>
+
+                        <p>
+                            If a reagent is not listed in
+                            <strong>Update Inventory</strong>,
+                            add it using <strong>Add New Reagent</strong>.
+                            It will then automatically appear in the reagent selection menu.
+                        </p>
+
+
+                        <h3>Standing Orders</h3>
+
+                        <p>
+                            Because MPRS may not reflect the most up-to-date ordering
+                            information, please refer to the
+                            <strong>Standing Orders</strong>
+                            section for the current recurring order requests.
+                        </p>
+
+
+                        <p>
+                            <a
+                                href="https://docs.google.com/document/d/1XeZ6hnZZOhQK9nhVFFWYXR_sG2U6snsb2Fi2Nkaw_-I/edit?usp=sharing"
+                                target="_blank"
+                            >
+                                View Full Buffer Tracking System Documentation
+                            </a>
+                        </p>
+
+                    </div>
+
+                </details>
+
+            </section>
 
         <!-- =========================
              1. INVENTORY
@@ -369,6 +526,40 @@
 
                 </table>
 
+            </div>
+
+        </section>
+        <!-- =========================
+            STANDING ORDERS
+        ========================== -->
+
+        <section class="card">
+
+            <h2>📦 Standing Orders</h2>
+
+            <p class="section-description">
+                Current recurring buffer order requests.
+            </p>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ORDER NUMBER</th>
+                            <th>BUFFER CODE</th>
+                            <th>BUFFER NAME</th>
+                            <th>REQUESTOR</th>
+                            <th>DELIVERY VOLUME (L)</th>
+                            <th>START DATE</th>
+                            <th>END DATE</th>
+                            <th>FREQUENCY</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="standingOrderTable">
+                    </tbody>
+
+                </table>
             </div>
 
         </section>
@@ -600,12 +791,13 @@
                             Actual Open Bottles
                         </label>
 
-                        <select
+                        <input
                             id="actualOpen"
-                            class="number-select"
-                            data-min="0"
-                        ></select>
-
+                            type="number"
+                            min="0"
+                            step="1"
+                            placeholder="Enter actual count"
+                        >
                     </div>
 
 
@@ -614,12 +806,13 @@
                         <label for="actualUnopened">
                             Actual Unopened Bottles
                         </label>
-
-                        <select
+                        <input
                             id="actualUnopened"
-                            class="number-select"
-                            data-min="0"
-                        ></select>
+                            type="number"
+                            min="0"
+                            step="1"
+                            placeholder="Enter actual count"
+                        >
 
                     </div>
 
@@ -645,11 +838,14 @@
                             Correct Open Bottles
                         </label>
 
-                        <select
+
+                        <input
                             id="correctOpen"
-                            class="number-select"
-                            data-min="0"
-                        ></select>
+                            type="number"
+                            min="0"
+                            step="1"
+                            placeholder="Enter correct count"
+                        >
 
                     </div>
 
@@ -660,11 +856,13 @@
                             Correct Unopened Bottles
                         </label>
 
-                        <select
+                        <input
                             id="correctUnopened"
-                            class="number-select"
-                            data-min="0"
-                        ></select>
+                            type="number"
+                            min="0"
+                            step="1"
+                            placeholder="Enter correct count"
+                        >
 
                     </div>
 
@@ -942,6 +1140,38 @@
 
             return true;
         }
+        async function loadStandingOrders() {
+
+            const {
+                data,
+                error
+            } = await supabaseClient
+                .from("standing_orders")
+                .select("*")
+                .order("start_date", {
+                    ascending: true
+                });
+
+            if (error) {
+
+                console.error(
+                    "Standing order error:",
+                    error
+                );
+
+                setStatus(
+                    "Database error: "
+                    + error.message,
+                    "error"
+                );
+
+                return false;
+            }
+
+            renderStandingOrders(data || []);
+
+            return true;
+        }
 
 
         async function refreshAll() {
@@ -953,16 +1183,20 @@
 
             const [
                 reagentSuccess,
-                logSuccess
+                logSuccess,
+                standingOrderSuccess
             ] = await Promise.all([
                 loadReagents(),
-                loadLogs()
+                loadLogs(),
+                loadStandingOrders()
             ]);
 
             if (
                 reagentSuccess
                 &&
                 logSuccess
+                &&
+                standingOrderSuccess
             ) {
 
                 setStatus(
@@ -1122,6 +1356,45 @@
                     );
                 }
             );
+        }
+        function renderStandingOrders(orders) {
+
+            const table =
+                $("standingOrderTable");
+
+            table.innerHTML = "";
+
+            if (!orders.length) {
+
+                table.innerHTML = `
+                    <tr>
+                        <td colspan="8">
+                            No standing orders.
+                        </td>
+                    </tr>
+                `;
+
+                return;
+            }
+
+            orders.forEach(order => {
+
+                const row =
+                    document.createElement("tr");
+
+                row.innerHTML = `
+                    <td>${escapeHTML(order.order_number)}</td>
+                    <td>${escapeHTML(order.buffer_code)}</td>
+                    <td>${escapeHTML(order.buffer_name)}</td>
+                    <td>${escapeHTML(order.requestor)}</td>
+                    <td>${order.delivery_volume_l ?? ""}</td>
+                    <td>${escapeHTML(order.start_date)}</td>
+                    <td>${escapeHTML(order.end_date)}</td>
+                    <td>${escapeHTML(order.frequency)}</td>
+                `;
+
+                table.appendChild(row);
+            });
         }
 
 
