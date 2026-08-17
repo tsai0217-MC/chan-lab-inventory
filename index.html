@@ -1,2090 +1,1023 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chan's lab | Reagent Inventory</title>
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --blue:#4b91d1; --blue-dark:#3277b9; --blue-light:#e8f5ff;
+      --blue-border:#cfe3f4; --text:#29435d; --muted:#6e8296;
+      --background:#f4faff; --danger:#b64040; --success:#30823a;
+    }
+    body {
+      margin:0; font-family:Arial,Helvetica,sans-serif; color:var(--text);
+      background:linear-gradient(180deg,#e3f3ff 0,#f4faff 320px,#f8fcff 100%);
+    }
+    .hero {
+      text-align:center; padding:45px 20px 35px;
+      background:linear-gradient(135deg,#d7efff,#eff9ff,#dcefff);
+      border-bottom:1px solid var(--blue-border);
+    }
+    .lab-icon { font-size:44px; }
+    .hero h1 {
+      margin:6px 0; font-family:Georgia,"Times New Roman",serif;
+      font-size:60px; font-weight:600; color:var(--blue-dark);
+    }
+    .hero p { margin:10px 0 0; font-size:14px; font-weight:600; letter-spacing:7px; color:var(--blue-dark); }
+    .container { width:calc(100% - 40px); max-width:1200px; margin:auto; padding-bottom:50px; }
+    .database-bar { display:flex; align-items:center; gap:15px; margin:25px 0; }
+    .two-column { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+    .card {
+      margin-bottom:24px; padding:28px; background:rgba(255,255,255,.96);
+      border:1px solid #d7e8f5; border-radius:20px; box-shadow:0 8px 25px rgba(77,128,169,.10);
+    }
+    .card h2 {
+      margin:0 0 24px; font-family:Georgia,"Times New Roman",serif;
+      color:var(--blue-dark); font-size:27px;
+    }
+    .form-row { margin-bottom:18px; }
+    label { display:block; margin-bottom:7px; font-weight:600; }
+    input, select {
+      width:100%; min-height:44px; padding:10px 12px; border:1px solid #bfd9ed;
+      border-radius:9px; background:#fff; color:var(--text); font-size:15px; outline:none;
+    }
+    input:focus, select:focus { border-color:#69a9df; box-shadow:0 0 0 3px rgba(105,169,223,.15); }
+    .sub-panel { margin:18px 0; padding:18px; border:1px solid #d6e8f6; border-radius:12px; background:#f7fbff; }
+    .helper { margin-top:0; color:var(--muted); font-size:14px; line-height:1.55; }
+    button {
+      padding:11px 20px; border:0; border-radius:9px;
+      background:linear-gradient(135deg,#68afe9,#438fd1); color:#fff;
+      font-size:15px; font-weight:600; cursor:pointer; box-shadow:0 4px 10px rgba(67,143,209,.18); transition:.15s;
+    }
+    button:hover { transform:translateY(-1px); box-shadow:0 7px 15px rgba(67,143,209,.25); }
+    button:disabled { opacity:.55; cursor:not-allowed; transform:none; }
+    .secondary-btn { background:#edf6ff; color:var(--blue-dark); border:1px solid #c5def1; box-shadow:none; }
+    .danger-btn { background:linear-gradient(135deg,#df7777,#bf5454); }
+    #databaseStatus { margin:0; padding:8px 14px; border-radius:20px; font-weight:600; font-size:14px; }
+    #databaseStatus.loading { background:#eef6fc; color:#507592; }
+    #databaseStatus.success { background:#edf9ee; color:var(--success); border:1px solid #c4e6c7; }
+    #databaseStatus.error { background:#fff0f0; color:var(--danger); border:1px solid #f1c9c9; }
+    .table-wrapper { width:100%; overflow-x:auto; }
+    table {
+      width:100%; border-collapse:separate; border-spacing:0; overflow:hidden;
+      border:1px solid var(--blue-border); border-radius:14px; background:#fff;
+    }
+    th {
+      padding:14px; background:linear-gradient(180deg,#eaf6ff,#ddecf9); color:#285f96;
+      font-size:13px; border-right:1px solid #ccdfed; border-bottom:1px solid #ccdfed;
+      text-align:center; white-space:nowrap;
+    }
+    td { padding:14px; text-align:center; border-right:1px solid #e2edf5; border-bottom:1px solid #e2edf5; }
+    th:last-child,td:last-child { border-right:none; }
+    tbody tr:last-child td { border-bottom:none; }
+    tbody tr:hover td { background:#f5fbff; }
+    .rules-title { cursor:pointer; font-size:22px; font-weight:700; color:var(--blue-dark); }
+    .rules-content { margin-top:22px; line-height:1.65; }
+    .rules-content h3 { margin:24px 0 8px; color:var(--blue-dark); }
+    .rules-content ul { padding-left:22px; }
+    .rules-content li { margin-bottom:8px; }
+    .rules-content a { color:var(--blue-dark); font-weight:600; }
 
-    <title>Chan's lab | Reagent Inventory</title>
+    /* Expandable inventory */
+    .inventory-main-row { cursor:pointer; }
+    .inventory-main-row td:first-child { font-weight:700; color:var(--blue-dark); }
+    .expand-icon { display:inline-block; width:20px; transition:transform .15s ease; }
+    .inventory-main-row.expanded .expand-icon { transform:rotate(90deg); }
+    .lot-detail-row td { background:#fbfdff !important; padding:0; }
+    .lot-panel { padding:20px; text-align:left; }
+    .lot-panel h4 { margin:0 0 12px; color:var(--blue-dark); }
+    .lot-table { margin-top:10px; }
+    .lot-table td, .lot-table th { padding:10px 12px; }
+    .qty-controls { display:inline-flex; align-items:center; gap:8px; }
+    .arrow-btn {
+      width:34px; height:34px; padding:0; border-radius:8px; box-shadow:none;
+      display:inline-flex; align-items:center; justify-content:center; font-size:16px;
+    }
+    .arrow-btn.up { background:#edf6ff; color:var(--blue-dark); border:1px solid #c5def1; }
+    .arrow-btn.down { background:linear-gradient(135deg,#68afe9,#438fd1); }
+    .projected-count { min-width:78px; display:inline-block; font-weight:700; }
+    .pending-change { color:#b06f00; font-size:12px; font-weight:700; margin-left:6px; }
+    .quick-submit { display:flex; flex-wrap:wrap; align-items:end; gap:12px; margin-top:16px; }
+    .quick-submit .name-field { flex:1; min-width:220px; }
+    .quick-submit .name-field input { margin-top:6px; }
+    .lot-expiring { color:#b06f00; font-weight:700; }
+    .lot-expired { color:var(--danger); font-weight:700; }
+    .summary-note { color:var(--muted); font-size:13px; margin-top:8px; }
+    .admin-badge {
+      display:inline-block; margin-left:8px; padding:3px 8px; border-radius:12px;
+      background:#edf6ff; color:var(--blue-dark); font-size:12px; vertical-align:middle;
+    }
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+    /* Expiration status */
+    .expired-date { color:#c62828; font-weight:800; }
+    .expiring-date { color:#b77900; font-weight:800; }
+    .safe-date { color:#2e7d32; font-weight:700; }
+    .expiration-alert {
+      display:inline-flex; align-items:center; justify-content:center;
+      width:20px; height:20px; margin-right:7px; border-radius:50%;
+      color:#fff; font-size:14px; font-weight:900; line-height:1;
+      vertical-align:middle;
+    }
+    .expiration-alert.red { background:#d93025; }
+    .expiration-alert.yellow { background:#e6a700; }
 
-        :root {
-            --blue: #4b91d1;
-            --blue-dark: #3277b9;
-            --blue-light: #e8f5ff;
-            --blue-border: #cfe3f4;
-            --text: #29435d;
-            --muted: #6e8296;
-            --background: #f4faff;
-        }
+    /* Low-stock alert */
+    .low-stock-banner {
+      display:none; margin-bottom:24px; padding:18px 20px; border-radius:16px;
+      background:#fff3f2; border:2px solid #e57373; color:#9f2f2f;
+      box-shadow:0 6px 18px rgba(190,70,70,.10);
+    }
+    .low-stock-banner.show { display:block; }
+    .low-stock-banner h3 { margin:0 0 10px; font-size:20px; }
+    .low-stock-banner ul { margin:8px 0 0; padding-left:22px; }
+    .low-stock-banner li { margin:6px 0; }
 
-        body {
-            margin: 0;
-            font-family: Arial, Helvetica, sans-serif;
-            color: var(--text);
-            background:
-                linear-gradient(
-                    180deg,
-                    #e3f3ff 0,
-                    #f4faff 320px,
-                    #f8fcff 100%
-                );
-        }
+    /* Alarm admin */
+    .alarm-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:10px; margin:14px 0 18px; }
+    .alarm-item {
+      display:flex; align-items:center; gap:10px; padding:12px 14px;
+      border:1px solid #d6e8f6; border-radius:10px; background:#f9fcff;
+    }
+    .alarm-item input { width:auto; min-height:auto; }
+    .alarm-item label { margin:0; cursor:pointer; font-weight:600; }
 
-        /* =========================
-           HEADER
-        ========================= */
+    /* Messages */
+    textarea {
+      width:100%; min-height:130px; resize:vertical; padding:12px;
+      border:1px solid #bfd9ed; border-radius:9px; background:#fff;
+      color:var(--text); font:inherit; outline:none;
+    }
+    textarea:focus { border-color:#69a9df; box-shadow:0 0 0 3px rgba(105,169,223,.15); }
+    .message-success { display:none; margin-top:12px; color:var(--success); font-weight:700; }
+    .message-success.show { display:block; }
 
-        .hero {
-            text-align: center;
-            padding: 45px 20px 35px;
-            background:
-                linear-gradient(
-                    135deg,
-                    #d7efff,
-                    #eff9ff,
-                    #dcefff
-                );
-            border-bottom: 1px solid var(--blue-border);
-        }
-
-        .lab-icon {
-            font-size: 44px;
-        }
-
-        .hero h1 {
-            margin: 6px 0;
-            font-family: Georgia, "Times New Roman", serif;
-            font-size: 60px;
-            font-weight: 600;
-            color: var(--blue-dark);
-        }
-
-        .hero p {
-            margin: 10px 0 0;
-            font-size: 14px;
-            font-weight: 600;
-            letter-spacing: 7px;
-            color: var(--blue-dark);
-        }
-
-        /* =========================
-           MAIN LAYOUT
-        ========================= */
-
-        .container {
-            width: calc(100% - 40px);
-            max-width: 1200px;
-            margin: auto;
-            padding-bottom: 50px;
-        }
-
-        .database-bar {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin: 25px 0;
-        }
-
-        .two-column {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-        }
-
-        /* =========================
-           CARDS
-        ========================= */
-
-        .card {
-            margin-bottom: 24px;
-            padding: 28px;
-            background: rgba(255,255,255,.96);
-            border: 1px solid #d7e8f5;
-            border-radius: 20px;
-            box-shadow: 0 8px 25px rgba(77,128,169,.10);
-        }
-
-        .card h2 {
-            margin: 0 0 24px;
-            font-family: Georgia, "Times New Roman", serif;
-            color: var(--blue-dark);
-            font-size: 27px;
-        }
-
-        /* =========================
-           FORMS
-        ========================= */
-
-        .form-row {
-            margin-bottom: 18px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 7px;
-            font-weight: 600;
-        }
-
-        input,
-        select {
-            width: 100%;
-            min-height: 44px;
-            padding: 10px 12px;
-            border: 1px solid #bfd9ed;
-            border-radius: 9px;
-            background: white;
-            color: var(--text);
-            font-size: 15px;
-            outline: none;
-        }
-
-        input:focus,
-        select:focus {
-            border-color: #69a9df;
-            box-shadow: 0 0 0 3px rgba(105,169,223,.15);
-        }
-
-        .sub-panel {
-            margin: 18px 0;
-            padding: 18px;
-            border: 1px solid #d6e8f6;
-            border-radius: 12px;
-            background: #f7fbff;
-        }
-
-        .helper {
-            margin-top: 0;
-            color: var(--muted);
-            font-size: 14px;
-        }
-
-        /* =========================
-           BUTTONS
-        ========================= */
-
-        button {
-            padding: 11px 20px;
-            border: none;
-            border-radius: 9px;
-            background:
-                linear-gradient(
-                    135deg,
-                    #68afe9,
-                    #438fd1
-                );
-            color: white;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(67,143,209,.18);
-            transition: .15s;
-        }
-
-        button:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 7px 15px rgba(67,143,209,.25);
-        }
-
-        button:disabled {
-            opacity: .55;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* =========================
-           DATABASE STATUS
-        ========================= */
-
-        #databaseStatus {
-            margin: 0;
-            padding: 8px 14px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        #databaseStatus.loading {
-            background: #eef6fc;
-            color: #507592;
-        }
-
-        #databaseStatus.success {
-            background: #edf9ee;
-            color: #30823a;
-            border: 1px solid #c4e6c7;
-        }
-
-        #databaseStatus.error {
-            background: #fff0f0;
-            color: #b64040;
-            border: 1px solid #f1c9c9;
-        }
-
-        /* =========================
-           TABLE
-        ========================= */
-
-        .table-wrapper {
-            width: 100%;
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            overflow: hidden;
-            border: 1px solid var(--blue-border);
-            border-radius: 14px;
-            background: white;
-        }
-
-        th {
-            padding: 14px;
-            background:
-                linear-gradient(
-                    180deg,
-                    #eaf6ff,
-                    #ddecf9
-                );
-            color: #285f96;
-            font-size: 13px;
-            border-right: 1px solid #ccdfed;
-            border-bottom: 1px solid #ccdfed;
-            text-align: center;
-            white-space: nowrap;
-        }
-
-        td {
-            padding: 14px;
-            text-align: center;
-            border-right: 1px solid #e2edf5;
-            border-bottom: 1px solid #e2edf5;
-        }
-
-        th:last-child,
-        td:last-child {
-            border-right: none;
-        }
-
-        tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        tbody tr:hover td {
-            background: #f5fbff;
-        }
-
-        /* =========================
-           MOBILE
-        ========================= */
-
-        @media (max-width: 800px) {
-            .hero h1 {
-                font-size: 43px;
-            }
-
-            .hero p {
-                font-size: 11px;
-                letter-spacing: 4px;
-            }
-
-            .two-column {
-                grid-template-columns: 1fr;
-            }
-
-            .database-bar {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .card {
-                padding: 20px;
-            }
-        }
-        .rules-title {
-            cursor: pointer;
-            font-size: 22px;
-            font-weight: 700;
-            color: var(--blue-dark);
-        }
-
-        .rules-content {
-            margin-top: 22px;
-            line-height: 1.65;
-        }
-
-        .rules-content h3 {
-            margin-top: 24px;
-            margin-bottom: 8px;
-            color: var(--blue-dark);
-        }
-
-        .rules-content ul {
-            padding-left: 22px;
-        }
-
-        .rules-content li {
-            margin-bottom: 8px;
-        }
-
-        .rules-content a {
-            color: var(--blue-dark);
-            font-weight: 600;
-        }
-    </style>
+    @media (max-width:800px) {
+      .hero h1 { font-size:43px; }
+      .hero p { font-size:11px; letter-spacing:4px; }
+      .two-column { grid-template-columns:1fr; }
+      .database-bar { flex-direction:column; align-items:flex-start; }
+      .card { padding:20px; }
+    }
+  </style>
 </head>
-
-
 <body>
+  <header class="hero">
+    <div class="lab-icon">⚗️</div>
+    <h1>Chan's lab</h1>
+    <p>LAB REAGENT INVENTORY</p>
+  </header>
 
-    <!-- =========================
-         HEADER
-    ========================= -->
+  <main class="container">
+    <div class="database-bar">
+      <button onclick="refreshAll()">↻ Refresh Database</button>
+      <p id="databaseStatus" class="loading">Connecting to database...</p>
+    </div>
 
-    <header class="hero">
-        <div class="lab-icon">⚗️</div>
+    <section class="card">
+      <details>
+        <summary class="rules-title">📘 Buffer Tracking System — Guidelines & Instructions</summary>
+        <div class="rules-content">
+          <h3>Authorized Use</h3>
+          <p>This system is intended exclusively for members of the Genentech BCP Chan Lab. Unauthorized access or misuse is prohibited.</p>
 
-        <h1>Chan's lab</h1>
+          <h3>What This System Tracks</h3>
+          <p>This system tracks <strong>unopened bottles only</strong>. Each reagent may contain multiple lots, and every lot has its own lot number, expiration date, and unopened bottle count.</p>
 
-        <p>LAB REAGENT INVENTORY</p>
-    </header>
+          <h3>Storage & Registration</h3>
+          <p>Buffers are currently stored in three locations:</p>
+          <ul>
+            <li><strong>422255</strong> — Chan Lab 4°C Refrigerator</li>
+            <li><strong>423328</strong> — Cold Room</li>
+            <li><strong>423360</strong> — Hallway Refrigerator (Delivery Location: 48-1150)</li>
+          </ul>
+          <p>Newly delivered buffers are initially stored in the <strong>423360 hallway refrigerator</strong> and are not yet considered registered inventory. When a buffer is transferred to 422255 or 423328, it must be added as <strong>New Stock</strong>.</p>
 
+          <h3>Opening a Buffer</h3>
+          <p>In <strong>Inventory Overview</strong>, click the reagent to expand its lots. Find the exact lot you are opening and press <strong>▼ once for each bottle opened</strong>. The change is only pending until <strong>Submit Changes</strong> is pressed. Use <strong>▲</strong> only to undo a pending ▼ before submission.</p>
 
-    <main class="container">
+          <h3>Expiration Status</h3>
+          <p>An expired lot is shown in red with a red <strong>!</strong>. A lot expiring within 14 days is shown in yellow/orange with a yellow <strong>!</strong>. Lots expiring more than 14 days later are shown in green.</p>
 
-        <!-- DATABASE -->
+          <h3>Adding New Stock</h3>
+          <p>New Stock must include a <strong>Lot Number</strong> and <strong>Expiration Date</strong>. If the same reagent and lot already exist, the new quantity is added to that existing lot instead of creating a duplicate lot.</p>
 
-        <div class="database-bar">
+          <h3>Low Stock Alarm</h3>
+          <p>Selected reagents may have a low-stock alarm enabled. When the total unopened quantity across all lots of an alarm-enabled reagent drops below <strong>3 bottles</strong>, a warning is displayed at the top of the Inventory Overview. Email notification is handled by the database notification system.</p>
 
-            <button onclick="refreshAll()">
-                ↻ Refresh Database
-            </button>
+          <h3>Messages to the Buffer Tracking Admin</h3>
+          <p>Use the message section near the bottom of the page to contact the Buffer Tracking System administrator about expected high usage, standing-order changes, or other inventory concerns.</p>
 
-            <p id="databaseStatus" class="loading">
-                Connecting to database...
-            </p>
+          <h3>Standing Orders</h3>
+          <p>Because MPRS may not reflect the most up-to-date ordering information, please refer to the <strong>Standing Orders</strong> section for current recurring order requests.</p>
 
+          <p><a href="https://docs.google.com/document/d/1XeZ6hnZZOhQK9nhVFFWYXR_sG2U6snsb2Fi2Nkaw_-I/edit?usp=sharing" target="_blank">View Full Buffer Tracking System Documentation</a></p>
         </div>
-        <section class="card">
-
-                <details>
-
-                    <summary class="rules-title">
-                        📘 Buffer Tracking System — Guidelines & Instructions
-                    </summary>
-
-                    <div class="rules-content">
-
-                        <h3>Authorized Use</h3>
-
-                        <p>
-                            This system is intended exclusively for members of the
-                            Genentech BCP Chan Lab. Unauthorized access or misuse is prohibited.
-                        </p>
-
-
-                        <h3>What This System Tracks</h3>
-
-                        <p>
-                            This system tracks the inventory of reagents used for
-                            <strong>22F12 and PSR</strong>, including
-                            A4806, A4807, A4808, A4809, A4810, A4811, A3323, and TMB.
-                            Additional reagents may be added as needed.
-                        </p>
-
-
-                        <h3>Storage & Registration</h3>
-
-                        <p>
-                            Buffers are currently stored in three locations:
-                        </p>
-
-                        <ul>
-                            <li>
-                                <strong>422255</strong> — Chan Lab 4°C Refrigerator
-                            </li>
-
-                            <li>
-                                <strong>423328</strong> — Cold Room
-                            </li>
-
-                            <li>
-                                <strong>423360</strong> — Hallway Refrigerator
-                                (Delivery Location: 48-1150)
-                            </li>
-                        </ul>
-
-                        <p>
-                            Newly delivered buffers are initially stored in the
-                            <strong>423360 hallway refrigerator</strong>
-                            and are not yet considered registered inventory.
-                            When a buffer is transferred from the hallway refrigerator
-                            to either 422255 or 423328, it must be added to the tracking
-                            system as <strong>New Stock</strong>.
-                        </p>
-
-
-                        <h3>When to Update the System</h3>
-
-                        <ul>
-                            <li>
-                                New buffer added to registered inventory →
-                                <strong>New Stock</strong>
-                            </li>
-
-                            <li>
-                                A bottle is opened →
-                                <strong>Open Bottle</strong>
-                            </li>
-
-                            <li>
-                                A bottle is completely used →
-                                <strong>Finished Bottle</strong>
-                            </li>
-
-                            <li>
-                                A bottle is discarded due to expiration →
-                                <strong>Expired</strong>
-                            </li>
-
-                            <li>
-                                Inventory is manually counted →
-                                <strong>Physical Count</strong>
-                            </li>
-
-                            <li>
-                                An incorrect entry needs to be corrected →
-                                <strong>Input Error Correction</strong>
-                            </li>
-                        </ul>
-
-
-                        <h3>Adding a New Reagent</h3>
-
-                        <p>
-                            If a reagent is not listed in
-                            <strong>Update Inventory</strong>,
-                            add it using <strong>Add New Reagent</strong>.
-                            It will then automatically appear in the reagent selection menu.
-                        </p>
-
-
-                        <h3>Standing Orders</h3>
-
-                        <p>
-                            Because MPRS may not reflect the most up-to-date ordering
-                            information, please refer to the
-                            <strong>Standing Orders</strong>
-                            section for the current recurring order requests.
-                        </p>
-
-
-                        <p>
-                            <a
-                                href="https://docs.google.com/document/d/1XeZ6hnZZOhQK9nhVFFWYXR_sG2U6snsb2Fi2Nkaw_-I/edit?usp=sharing"
-                                target="_blank"
-                            >
-                                View Full Buffer Tracking System Documentation
-                            </a>
-                        </p>
-
-                    </div>
-
-                </details>
-
-            </section>
-
-        <!-- =========================
-             1. INVENTORY
-        ========================= -->
-
-        <section class="card">
-
-            <h2>📋 1. Inventory Overview</h2>
-
-            <div class="table-wrapper">
-
-                <table>
-
-                    <thead>
-                        <tr>
-                            <th>CODE</th>
-                            <th>NAME</th>
-                            <th>OPEN BOTTLES</th>
-                            <th>UNOPENED BOTTLES</th>
-                            <th>LAST UPDATED</th>
-                        </tr>
-                    </thead>
-
-                    <tbody id="inventoryTable"></tbody>
-
-                </table>
-
-            </div>
-
-        </section>
-        <!-- =========================
-            STANDING ORDERS
-        ========================== -->
-
-        <section class="card">
-
-            <h2>📦 Standing Orders</h2>
-
-            <p class="section-description">
-                Current recurring buffer order requests.
-            </p>
-
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ORDER NUMBER</th>
-                            <th>BUFFER CODE</th>
-                            <th>BUFFER NAME</th>
-                            <th>REQUESTOR</th>
-                            <th>DELIVERY VOLUME (L)</th>
-                            <th>START DATE</th>
-                            <th>END DATE</th>
-                            <th>FREQUENCY</th>
-                        </tr>
-                    </thead>
-
-                    <tbody id="standingOrderTable">
-                    </tbody>
-
-                </table>
-            </div>
-
-        </section>
-
-
-        <!-- ADD + UPDATE -->
-
-        <div class="two-column">
-
-
-            <!-- =========================
-                 ADD NEW REAGENT
-            ========================= -->
-
-            <section class="card">
-
-                <h2>＋ Add New Reagent</h2>
-
-                <div class="form-row">
-                    <label for="newCode">Code</label>
-
-                    <input
-                        id="newCode"
-                        type="text"
-                        placeholder="Example: BUF001"
-                    >
-                </div>
-
-
-                <div class="form-row">
-                    <label for="newName">Name</label>
-
-                    <input
-                        id="newName"
-                        type="text"
-                        placeholder="Example: PBS"
-                    >
-                </div>
-
-
-                <div class="form-row">
-                    <label for="initialUnopened">
-                        Initial Unopened Bottles
-                    </label>
-
-                    <select
-                        id="initialUnopened"
-                        class="number-select"
-                        data-min="0"
-                    ></select>
-                </div>
-
-
-                <div class="form-row">
-                    <label for="newReagentUser">
-                        Added By
-                    </label>
-
-                    <input
-                        id="newReagentUser"
-                        type="text"
-                        placeholder="Your name"
-                    >
-                </div>
-
-
-                <div class="form-row">
-                    <label for="newReagentNote">
-                        Note
-                    </label>
-
-                    <input
-                        id="newReagentNote"
-                        type="text"
-                        placeholder="Optional"
-                    >
-                </div>
-
-
-                <button onclick="addNewReagent()">
-                    ⚗ Add Reagent
-                </button>
-
-            </section>
-
-
-            <!-- =========================
-                 3. UPDATE INVENTORY
-            ========================= -->
-
-            <section class="card">
-
-                <h2>✎ 3. Update Inventory</h2>
-
-
-                <div class="form-row">
-
-                    <label for="reagentSelect">
-                        Reagent
-                    </label>
-
-                    <select id="reagentSelect"></select>
-
-                </div>
-
-
-                <div class="form-row">
-
-                    <label for="actionSelect">
-                        Action
-                    </label>
-
-                    <select
-                        id="actionSelect"
-                        onchange="updateForm()"
-                    >
-
-                        <option value="NEW_STOCK">
-                            New Stock
-                        </option>
-
-                        <option value="OPEN">
-                            Open Bottle
-                        </option>
-
-                        <option value="FINISHED">
-                            Finished Bottle
-                        </option>
-
-                        <option value="EXPIRED">
-                            Expired
-                        </option>
-
-                        <option value="PHYSICAL_COUNT">
-                            Physical Count
-                        </option>
-
-                        <option value="INPUT_ERROR">
-                            Input Error Correction
-                        </option>
-
-                    </select>
-
-                </div>
-
-
-                <!-- NORMAL QUANTITY -->
-
-                <div
-                    id="quantityArea"
-                    class="sub-panel"
-                >
-
-                    <label for="quantity">
-                        Quantity
-                    </label>
-
-                    <select
-                        id="quantity"
-                        class="number-select"
-                        data-min="1"
-                    ></select>
-
-                </div>
-
-
-                <!-- EXPIRED -->
-
-                <div
-                    id="expiredArea"
-                    class="sub-panel"
-                    style="display:none;"
-                >
-
-                    <div class="form-row">
-
-                        <label for="expiredStatus">
-                            Expired Bottle Status
-                        </label>
-
-                        <select id="expiredStatus">
-
-                            <option value="OPEN">
-                                Open
-                            </option>
-
-                            <option value="UNOPEN">
-                                Unopened
-                            </option>
-
-                        </select>
-
-                    </div>
-
-
-                    <div class="form-row">
-
-                        <label for="expiredQuantity">
-                            Quantity
-                        </label>
-
-                        <select
-                            id="expiredQuantity"
-                            class="number-select"
-                            data-min="1"
-                        ></select>
-
-                    </div>
-
-                </div>
-
-
-                <!-- PHYSICAL COUNT -->
-
-                <div
-                    id="physicalCountArea"
-                    class="sub-panel"
-                    style="display:none;"
-                >
-
-                    <p class="helper">
-                        Enter the actual number of bottles physically counted.
-                    </p>
-
-
-                    <div class="form-row">
-
-                        <label for="actualOpen">
-                            Actual Open Bottles
-                        </label>
-
-                        <input
-                            id="actualOpen"
-                            type="number"
-                            min="0"
-                            step="1"
-                            placeholder="Enter actual count"
-                        >
-                    </div>
-
-
-                    <div class="form-row">
-
-                        <label for="actualUnopened">
-                            Actual Unopened Bottles
-                        </label>
-                        <input
-                            id="actualUnopened"
-                            type="number"
-                            min="0"
-                            step="1"
-                            placeholder="Enter actual count"
-                        >
-
-                    </div>
-
-                </div>
-
-
-                <!-- INPUT ERROR -->
-
-                <div
-                    id="errorCorrectionArea"
-                    class="sub-panel"
-                    style="display:none;"
-                >
-
-                    <p class="helper">
-                        Enter the correct final inventory.
-                    </p>
-
-
-                    <div class="form-row">
-
-                        <label for="correctOpen">
-                            Correct Open Bottles
-                        </label>
-
-
-                        <input
-                            id="correctOpen"
-                            type="number"
-                            min="0"
-                            step="1"
-                            placeholder="Enter correct count"
-                        >
-
-                    </div>
-
-
-                    <div class="form-row">
-
-                        <label for="correctUnopened">
-                            Correct Unopened Bottles
-                        </label>
-
-                        <input
-                            id="correctUnopened"
-                            type="number"
-                            min="0"
-                            step="1"
-                            placeholder="Enter correct count"
-                        >
-
-                    </div>
-
-                </div>
-
-
-                <div class="form-row">
-
-                    <label for="updatedBy">
-                        Updated By
-                    </label>
-
-                    <input
-                        id="updatedBy"
-                        type="text"
-                        placeholder="Your name"
-                    >
-
-                </div>
-
-
-                <div class="form-row">
-
-                    <label for="note">
-                        Note
-                    </label>
-
-                    <input
-                        id="note"
-                        type="text"
-                        placeholder="Optional"
-                    >
-
-                </div>
-
-
-                <button
-                    id="updateButton"
-                    onclick="updateInventory()"
-                >
-                    ✓ Confirm Update
-                </button>
-
-            </section>
-
+      </details>
+    </section>
+
+    <!-- LOW STOCK ALERT -->
+    <section id="lowStockBanner" class="low-stock-banner">
+      <h3>⚠ Low Stock Alert</h3>
+      <div>The following alarm-enabled buffers have fewer than 3 unopened bottles remaining:</div>
+      <ul id="lowStockList"></ul>
+    </section>
+
+    <!-- INVENTORY OVERVIEW -->
+    <section class="card">
+      <h2>📋 1. Inventory Overview</h2>
+      <p class="helper">Click a reagent to view all lots. Use ▼ for each bottle opened. Use ▲ only to undo a pending ▼ before submitting.</p>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>CODE</th>
+              <th>NAME</th>
+              <th>UNOPENED BOTTLES</th>
+              <th>NEAREST EXPIRATION</th>
+              <th>LAST UPDATED</th>
+            </tr>
+          </thead>
+          <tbody id="inventoryTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- STANDING ORDERS -->
+    <section class="card">
+      <h2>📦 Standing Orders</h2>
+      <p class="section-description">Current recurring buffer order requests.</p>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>ORDER NUMBER</th>
+              <th>BUFFER CODE</th>
+              <th>BUFFER NAME</th>
+              <th>REQUESTOR</th>
+              <th>DELIVERY VOLUME (L)</th>
+              <th>START DATE</th>
+              <th>END DATE</th>
+              <th>FREQUENCY</th>
+            </tr>
+          </thead>
+          <tbody id="standingOrderTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="two-column">
+      <!-- ADD REAGENT -->
+      <section class="card">
+        <h2>＋ Add New Reagent <span class="admin-badge">Admin / advanced</span></h2>
+        <p class="helper">This creates the reagent master record only. Add physical inventory through New Stock so a lot number and expiration date can be recorded.</p>
+        <div class="form-row">
+          <label for="newCode">Code</label>
+          <input id="newCode" type="text" placeholder="Example: A4806">
+        </div>
+        <div class="form-row">
+          <label for="newName">Name</label>
+          <input id="newName" type="text" placeholder="Example: LM BCP Block Buffer">
+        </div>
+        <div class="form-row">
+          <label for="newReagentUser">Added By</label>
+          <input id="newReagentUser" type="text" placeholder="Your name">
+        </div>
+        <div class="form-row">
+          <label for="newReagentNote">Note</label>
+          <input id="newReagentNote" type="text" placeholder="Optional">
+        </div>
+        <button onclick="addNewReagent()">⚗ Add Reagent</button>
+      </section>
+
+      <!-- ADMIN UPDATE -->
+      <section class="card">
+        <h2>✎ 3. Update Inventory <span class="admin-badge">Admin / advanced</span></h2>
+        <div class="form-row">
+          <label for="reagentSelect">Reagent</label>
+          <select id="reagentSelect" onchange="updateLotDropdown(); updateAdminForm();"></select>
+        </div>
+        <div class="form-row">
+          <label for="actionSelect">Action</label>
+          <select id="actionSelect" onchange="updateAdminForm()">
+            <option value="NEW_STOCK">New Stock</option>
+            <option value="EXPIRED">Expired / Discard Unopened Bottle</option>
+            <option value="PHYSICAL_COUNT">Physical Count</option>
+            <option value="INPUT_ERROR">Input Error Correction</option>
+          </select>
         </div>
 
+        <div id="newStockArea" class="sub-panel">
+          <div class="form-row">
+            <label for="newLotNumber">Lot Number</label>
+            <input id="newLotNumber" type="text" placeholder="Example: 1123">
+          </div>
+          <div class="form-row">
+            <label for="newExpirationDate">Expiration Date</label>
+            <input id="newExpirationDate" type="date">
+          </div>
+          <div class="form-row">
+            <label for="newStockQuantity">Quantity</label>
+            <select id="newStockQuantity" class="number-select" data-min="1"></select>
+          </div>
+        </div>
 
-        <!-- =========================
-             2. LOGS
-        ========================= -->
+        <div id="existingLotArea" class="sub-panel" style="display:none;">
+          <div class="form-row">
+            <label for="lotSelect">Lot</label>
+            <select id="lotSelect"></select>
+          </div>
+        </div>
 
-        <section class="card">
+        <div id="lotQuantityArea" class="sub-panel" style="display:none;">
+          <label for="adminQuantity">Quantity</label>
+          <select id="adminQuantity" class="number-select" data-min="1"></select>
+        </div>
 
-            <h2>📄 2. Logs</h2>
+        <div id="physicalCountArea" class="sub-panel" style="display:none;">
+          <p class="helper">Enter the actual unopened bottle count for the selected lot.</p>
+          <label for="actualUnopened">Actual Unopened Bottles</label>
+          <input id="actualUnopened" type="number" min="0" step="1" placeholder="Enter actual count">
+        </div>
 
-            <div class="table-wrapper">
+        <div id="errorCorrectionArea" class="sub-panel" style="display:none;">
+          <p class="helper">Enter the correct unopened bottle count for the selected lot.</p>
+          <label for="correctUnopened">Correct Unopened Bottles</label>
+          <input id="correctUnopened" type="number" min="0" step="1" placeholder="Enter correct count">
+        </div>
 
-                <table>
+        <div class="form-row">
+          <label for="updatedBy">Updated By</label>
+          <input id="updatedBy" type="text" placeholder="Your name">
+        </div>
+        <div class="form-row">
+          <label for="note">Note</label>
+          <input id="note" type="text" placeholder="Optional">
+        </div>
+        <button id="updateButton" onclick="updateInventory()">✓ Confirm Update</button>
+      </section>
+    </div>
 
-                    <thead>
-                        <tr>
-                            <th>TIME</th>
-                            <th>USER</th>
-                            <th>CODE</th>
-                            <th>NAME</th>
-                            <th>ACTION</th>
-                            <th>CHANGE</th>
-                            <th>NOTE</th>
-                        </tr>
-                    </thead>
+    <!-- LOW STOCK ALARM SETTINGS -->
+    <section class="card">
+      <h2>🔔 Low Stock Alarm Settings <span class="admin-badge">Admin / advanced</span></h2>
+      <p class="helper">Choose which buffers should trigger a low-stock alert. An enabled buffer is considered low when the total unopened quantity across all lots is below 3 bottles. Email delivery will be handled by the Supabase trigger configured later.</p>
+      <div id="alarmSettingsList" class="alarm-grid"></div>
+      <button type="button" onclick="saveAlarmSettings()">💾 Save Alarm Settings</button>
+    </section>
 
-                    <tbody id="logTable"></tbody>
+    <!-- MESSAGE TO ADMIN -->
+    <section class="card">
+      <h2>💬 Message the Buffer Tracking Admin</h2>
+      <p class="helper">Use this form for expected high buffer usage, requests to adjust a standing order, or other inventory-related messages.</p>
+      <div class="form-row">
+        <label for="messageName">Your Name</label>
+        <input id="messageName" type="text" placeholder="Your name">
+      </div>
+      <div class="form-row">
+        <label for="messageReagent">Buffer / Reagent</label>
+        <select id="messageReagent"></select>
+      </div>
+      <div class="form-row">
+        <label for="messageText">Message</label>
+        <textarea id="messageText" placeholder="Example: We expect to use a large amount of A4806 next week. Please consider increasing the standing order."></textarea>
+      </div>
+      <button type="button" onclick="sendAdminMessage()">✉ Send Message</button>
+      <div id="messageSuccess" class="message-success">Message sent successfully.</div>
+    </section>
 
-                </table>
+    <!-- LOGS -->
+    <section class="card">
+      <h2>📄 2. Logs</h2>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>TIME</th><th>USER</th><th>CODE</th><th>NAME</th><th>ACTION</th><th>CHANGE</th><th>NOTE</th>
+            </tr>
+          </thead>
+          <tbody id="logTable"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
 
-            </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = "https://qaicgoiaoowjjdqkoveq.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_xYsv4rwAtlBxNfC3u5H5bg_7GujK4fI";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        </section>
+    let reagents = [];
+    let lots = [];
+    let logs = [];
+    let standingOrders = [];
+    const pendingUse = {}; // { lotId: numberOfBottlesToOpen }
 
-    </main>
+    const $ = id => document.getElementById(id);
 
+    function escapeHTML(value) {
+      const div = document.createElement("div");
+      div.textContent = value == null ? "" : String(value);
+      return div.innerHTML;
+    }
 
-    <!-- =========================
-         SUPABASE
-    ========================= -->
+    function formatTime(value) {
+      if (!value) return "";
+      return new Date(value).toLocaleString();
+    }
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    function formatDate(value) {
+      if (!value) return "";
+      const [y,m,d] = String(value).split("-");
+      return y && m && d ? `${m}/${d}/${y}` : value;
+    }
 
+    function setStatus(text, type="loading") {
+      const element = $("databaseStatus");
+      element.textContent = text;
+      element.className = type;
+    }
 
-    <script>
-
-        /* ==========================================================
-           SUPABASE
-        ========================================================== */
-
-        const SUPABASE_URL =
-            "https://qaicgoiaoowjjdqkoveq.supabase.co";
-
-        const SUPABASE_KEY =
-            "sb_publishable_xYsv4rwAtlBxNfC3u5H5bg_7GujK4fI";
-
-        const supabaseClient =
-            supabase.createClient(
-                SUPABASE_URL,
-                SUPABASE_KEY
-            );
-
-
-        let reagents = [];
-        let logs = [];
-
-
-        /* ==========================================================
-           HELPERS
-        ========================================================== */
-
-        const $ = id =>
-            document.getElementById(id);
-
-
-        function escapeHTML(value) {
-
-            const div =
-                document.createElement("div");
-
-            div.textContent =
-                value == null
-                    ? ""
-                    : String(value);
-
-            return div.innerHTML;
+    function createNumberOptions() {
+      document.querySelectorAll(".number-select").forEach(select => {
+        const min = Number(select.dataset.min);
+        select.innerHTML = "";
+        for (let i=min; i<=10; i++) {
+          const option = document.createElement("option");
+          option.value = i;
+          option.textContent = i;
+          select.appendChild(option);
         }
+      });
+    }
 
+    function reagentLots(reagentId) {
+      return lots
+        .filter(l => Number(l.reagent_id) === Number(reagentId))
+        .sort((a,b) => String(a.expiration_date || "9999-12-31").localeCompare(String(b.expiration_date || "9999-12-31")));
+    }
 
-        function formatTime(value) {
+    function reagentSummary(reagentId) {
+      const rs = reagentLots(reagentId);
+      const total = rs.reduce((sum,l) => sum + Number(l.unopened_count || 0), 0);
+      const active = rs.filter(l => Number(l.unopened_count || 0) > 0 && l.expiration_date);
+      const nearest = active.length ? active[0].expiration_date : "";
+      const lastUpdated = rs.reduce((latest,l) => {
+        if (!l.last_updated) return latest;
+        if (!latest) return l.last_updated;
+        return new Date(l.last_updated) > new Date(latest) ? l.last_updated : latest;
+      }, "");
+      return { total, nearest, lastUpdated };
+    }
 
-            if (!value) return "";
+    function renderLowStockAlerts() {
+      const low = reagents
+        .filter(r => r.alarm_enabled === true)
+        .map(r => ({reagent:r, total:reagentSummary(r.id).total}))
+        .filter(x => x.total < 3);
 
-            return new Date(value)
-                .toLocaleString();
+      const banner = $("lowStockBanner");
+      const list = $("lowStockList");
+      if (!banner || !list) return;
+
+      list.innerHTML = low.map(x =>
+        `<li><strong>${escapeHTML(x.reagent.code)} — ${escapeHTML(x.reagent.name)}</strong>: ${x.total} unopened bottle${x.total === 1 ? "" : "s"} remaining</li>`
+      ).join("");
+      banner.classList.toggle("show", low.length > 0);
+    }
+
+    function renderAlarmSettings() {
+      const box = $("alarmSettingsList");
+      if (!box) return;
+      if (!reagents.length) {
+        box.innerHTML = "<p>No reagents available.</p>";
+        return;
+      }
+      box.innerHTML = reagents.map(r => `
+        <div class="alarm-item">
+          <input type="checkbox" id="alarm-${r.id}" data-reagent-id="${r.id}" ${r.alarm_enabled === true ? "checked" : ""}>
+          <label for="alarm-${r.id}">${escapeHTML(r.code)} — ${escapeHTML(r.name)}</label>
+        </div>`).join("");
+    }
+
+    function updateMessageReagentDropdown() {
+      const select = $("messageReagent");
+      if (!select) return;
+      const old = select.value;
+      select.innerHTML = '<option value="">General / No specific buffer</option>';
+      reagents.forEach(r => {
+        const opt = document.createElement("option");
+        opt.value = r.id;
+        opt.textContent = `${r.code} - ${r.name}`;
+        select.appendChild(opt);
+      });
+      if ([...select.options].some(o => o.value === old)) select.value = old;
+    }
+
+    async function loadReagents() {
+      const {data,error} = await supabaseClient.from("reagents").select("*").order("code",{ascending:true});
+      if (error) { console.error(error); setStatus("Database error: "+error.message,"error"); return false; }
+      reagents = data || [];
+      updateReagentDropdown();
+      return true;
+    }
+
+    async function loadLots() {
+      const {data,error} = await supabaseClient.from("reagent_lots").select("*").order("expiration_date",{ascending:true});
+      if (error) { console.error(error); setStatus("Database error: "+error.message,"error"); return false; }
+      lots = data || [];
+      return true;
+    }
+
+    async function loadLogs() {
+      const {data,error} = await supabaseClient.from("logs").select("*").order("created_at",{ascending:false});
+      if (error) { console.error(error); setStatus("Database error: "+error.message,"error"); return false; }
+      logs = data || [];
+      renderLogs();
+      return true;
+    }
+
+    async function loadStandingOrders() {
+      const {data,error} = await supabaseClient.from("standing_orders").select("*").order("start_date",{ascending:true});
+      if (error) { console.error(error); setStatus("Database error: "+error.message,"error"); return false; }
+      standingOrders = data || [];
+      renderStandingOrders();
+      return true;
+    }
+
+    async function refreshAll() {
+      setStatus("Loading database...","loading");
+      const ok = await Promise.all([loadReagents(),loadLots(),loadLogs(),loadStandingOrders()]);
+      if (ok.every(Boolean)) {
+        renderInventory();
+        updateLotDropdown();
+        renderLowStockAlerts();
+        renderAlarmSettings();
+        updateMessageReagentDropdown();
+        setStatus("● Connected to Supabase","success");
+      }
+    }
+
+    function renderInventory() {
+      const table = $("inventoryTable");
+      table.innerHTML = "";
+      if (!reagents.length) {
+        table.innerHTML = `<tr><td colspan="5">No reagents in database.</td></tr>`;
+        return;
+      }
+
+      reagents.forEach(reagent => {
+        const summary = reagentSummary(reagent.id);
+        const main = document.createElement("tr");
+        main.className = "inventory-main-row";
+        main.dataset.reagentId = reagent.id;
+        main.innerHTML = `
+          <td><span class="expand-icon">▶</span>${escapeHTML(reagent.code)}</td>
+          <td>${escapeHTML(reagent.name)}</td>
+          <td>${summary.total}</td>
+          <td>${summary.nearest ? expirationHTML(summary.nearest) : "—"}</td>
+          <td>${summary.lastUpdated ? formatTime(summary.lastUpdated) : "—"}</td>
+        `;
+
+        const details = document.createElement("tr");
+        details.className = "lot-detail-row";
+        details.style.display = "none";
+        details.innerHTML = `<td colspan="5"><div class="lot-panel" id="lotPanel-${reagent.id}"></div></td>`;
+
+        main.addEventListener("click", () => {
+          const opening = details.style.display === "none";
+          details.style.display = opening ? "table-row" : "none";
+          main.classList.toggle("expanded", opening);
+          if (opening) renderLotPanel(reagent);
+        });
+
+        table.appendChild(main);
+        table.appendChild(details);
+      });
+    }
+
+    function expirationStatus(dateString) {
+      if (!dateString) return {className:"", icon:"", days:null};
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      const exp = new Date(dateString + "T00:00:00");
+      const days = Math.ceil((exp - today) / 86400000);
+
+      if (days < 0) {
+        return {
+          className:"expired-date",
+          icon:'<span class="expiration-alert red" title="Expired">!</span>',
+          days
+        };
+      }
+      if (days <= 14) {
+        return {
+          className:"expiring-date",
+          icon:'<span class="expiration-alert yellow" title="Expires within 14 days">!</span>',
+          days
+        };
+      }
+      return {className:"safe-date", icon:"", days};
+    }
+
+    function expirationHTML(dateString) {
+      if (!dateString) return "—";
+      const status = expirationStatus(dateString);
+      return `<span class="${status.className}">${status.icon}${formatDate(dateString)}</span>`;
+    }
+
+    function renderLotPanel(reagent) {
+      const panel = $(`lotPanel-${reagent.id}`);
+      const rs = reagentLots(reagent.id);
+      if (!rs.length) {
+        panel.innerHTML = `<h4>${escapeHTML(reagent.code)} — ${escapeHTML(reagent.name)}</h4><p>No lot records yet. Add stock through Update Inventory.</p>`;
+        return;
+      }
+
+      const rows = rs.map(lot => {
+        const original = Number(lot.unopened_count || 0);
+        const pending = Number(pendingUse[lot.id] || 0);
+        const projected = original - pending;
+        return `
+          <tr>
+            <td>${escapeHTML(lot.lot_number)}</td>
+            <td>${expirationHTML(lot.expiration_date)}</td>
+            <td><span class="projected-count" id="count-${lot.id}">${original}${pending ? ` → ${projected}` : ""}</span><span class="pending-change" id="pending-${lot.id}">${pending ? `(-${pending})` : ""}</span></td>
+            <td>
+              <span class="qty-controls">
+                <button class="arrow-btn up" type="button" onclick="event.stopPropagation(); adjustPending(${lot.id}, -1)">▲</button>
+                <button class="arrow-btn down" type="button" onclick="event.stopPropagation(); adjustPending(${lot.id}, 1)">▼</button>
+              </span>
+            </td>
+          </tr>`;
+      }).join("");
+
+      panel.innerHTML = `
+        <h4>${escapeHTML(reagent.code)} — ${escapeHTML(reagent.name)}</h4>
+        <div class="table-wrapper">
+          <table class="lot-table">
+            <thead><tr><th>LOT NUMBER</th><th>EXPIRATION DATE</th><th>UNOPENED BOTTLES</th><th>ADJUST</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+        <div class="quick-submit">
+          <button type="button" onclick="event.stopPropagation(); submitQuickUse(${reagent.id})">✓ Submit Changes</button>
+          <button type="button" class="secondary-btn" onclick="event.stopPropagation(); clearPendingForReagent(${reagent.id})">Clear Pending</button>
+        </div>
+        <p class="summary-note">▼ = bottle opened / removed from unopened inventory. ▲ = undo a pending ▼ before submission.</p>
+      `;
+    }
+
+    function adjustPending(lotId, direction) {
+      const lot = lots.find(l => Number(l.id) === Number(lotId));
+      if (!lot) return;
+      const original = Number(lot.unopened_count || 0);
+      const current = Number(pendingUse[lotId] || 0);
+
+      if (direction > 0) {
+        if (current >= original) return alert("You cannot open more bottles than are currently unopened in this lot.");
+        pendingUse[lotId] = current + 1;
+      } else {
+        pendingUse[lotId] = Math.max(0, current - 1);
+      }
+      if (!pendingUse[lotId]) delete pendingUse[lotId];
+
+      const countEl = $(`count-${lotId}`);
+      const pendingEl = $(`pending-${lotId}`);
+      const pending = Number(pendingUse[lotId] || 0);
+      const projected = original - pending;
+      if (countEl) countEl.textContent = pending ? `${original} → ${projected}` : String(original);
+      if (pendingEl) pendingEl.textContent = pending ? `(-${pending})` : "";
+    }
+
+    function clearPendingForReagent(reagentId) {
+      reagentLots(reagentId).forEach(l => delete pendingUse[l.id]);
+      const reagent = reagents.find(r => Number(r.id) === Number(reagentId));
+      if (reagent) renderLotPanel(reagent);
+    }
+
+    async function submitQuickUse(reagentId) {
+      const reagent = reagents.find(r => Number(r.id) === Number(reagentId));
+      if (!reagent) return;
+      const user = "";
+
+      const changes = reagentLots(reagentId)
+        .map(l => ({lot:l, qty:Number(pendingUse[l.id] || 0)}))
+        .filter(x => x.qty > 0);
+      if (!changes.length) return alert("No pending changes to submit.");
+
+      const summary = changes.map(x => `Lot ${x.lot.lot_number}: -${x.qty}`).join("\n");
+      if (!confirm(`Reagent: ${reagent.code} - ${reagent.name}\n\n${summary}\n\nConfirm?`)) return;
+
+      for (const item of changes) {
+        const {data:fresh,error:fetchError} = await supabaseClient
+          .from("reagent_lots").select("*").eq("id",item.lot.id).single();
+        if (fetchError) return alert("Could not load latest lot inventory:\n"+fetchError.message);
+        const current = Number(fresh.unopened_count || 0);
+        if (item.qty > current) {
+          await refreshAll();
+          return alert(`Lot ${fresh.lot_number} changed since you opened the page. Please review the latest inventory and try again.`);
         }
-
-
-        function setStatus(
-            text,
-            type = "loading"
-        ) {
-
-            const element =
-                $("databaseStatus");
-
-            element.textContent =
-                text;
-
-            element.className =
-                type;
-        }
-
-
-        /* Generate all 0–10 / 1–10 selectors */
-
-        function createNumberOptions() {
-
-            document
-                .querySelectorAll(
-                    ".number-select"
-                )
-                .forEach(select => {
-
-                    const min =
-                        Number(
-                            select.dataset.min
-                        );
-
-                    select.innerHTML =
-                        "";
-
-                    for (
-                        let i = min;
-                        i <= 10;
-                        i++
-                    ) {
-
-                        const option =
-                            document.createElement(
-                                "option"
-                            );
-
-                        option.value = i;
-                        option.textContent = i;
-
-                        select.appendChild(
-                            option
-                        );
-                    }
-                });
-        }
-
-
-        /* ==========================================================
-           LOAD DATABASE
-        ========================================================== */
-
-        async function loadReagents() {
-
-            const {
-                data,
-                error
-            } = await supabaseClient
-                .from("reagents")
-                .select("*")
-                .order(
-                    "code",
-                    {
-                        ascending: true
-                    }
-                );
-
-            if (error) {
-
-                console.error(error);
-
-                setStatus(
-                    "Database error: "
-                    + error.message,
-                    "error"
-                );
-
-                return false;
-            }
-
-            reagents =
-                data || [];
-
-            renderInventory();
-            updateReagentDropdown();
-
-            return true;
-        }
-
-
-        async function loadLogs() {
-
-            const {
-                data,
-                error
-            } = await supabaseClient
-                .from("logs")
-                .select("*")
-                .order(
-                    "created_at",
-                    {
-                        ascending: false
-                    }
-                );
-
-            if (error) {
-
-                console.error(error);
-
-                setStatus(
-                    "Database error: "
-                    + error.message,
-                    "error"
-                );
-
-                return false;
-            }
-
-            logs =
-                data || [];
-
-            renderLogs();
-
-            return true;
-        }
-        async function loadStandingOrders() {
-
-            const {
-                data,
-                error
-            } = await supabaseClient
-                .from("standing_orders")
-                .select("*")
-                .order("start_date", {
-                    ascending: true
-                });
-
-            if (error) {
-
-                console.error(
-                    "Standing order error:",
-                    error
-                );
-
-                setStatus(
-                    "Database error: "
-                    + error.message,
-                    "error"
-                );
-
-                return false;
-            }
-
-            renderStandingOrders(data || []);
-
-            return true;
-        }
-
-
-        async function refreshAll() {
-
-            setStatus(
-                "Loading database...",
-                "loading"
-            );
-
-            const [
-                reagentSuccess,
-                logSuccess,
-                standingOrderSuccess
-            ] = await Promise.all([
-                loadReagents(),
-                loadLogs(),
-                loadStandingOrders()
-            ]);
-
-            if (
-                reagentSuccess
-                &&
-                logSuccess
-                &&
-                standingOrderSuccess
-            ) {
-
-                setStatus(
-                    "● Connected to Supabase",
-                    "success"
-                );
-            }
-        }
-
-
-        /* ==========================================================
-           RENDER INVENTORY
-        ========================================================== */
-
-        function renderInventory() {
-
-            const table =
-                $("inventoryTable");
-
-            table.innerHTML = "";
-
-            if (!reagents.length) {
-
-                table.innerHTML = `
-                    <tr>
-                        <td colspan="5">
-                            No reagents in database.
-                        </td>
-                    </tr>
-                `;
-
-                return;
-            }
-
-            reagents.forEach(
-                reagent => {
-
-                    const row =
-                        document.createElement(
-                            "tr"
-                        );
-
-                    row.innerHTML = `
-                        <td>
-                            ${escapeHTML(
-                                reagent.code
-                            )}
-                        </td>
-
-                        <td>
-                            ${escapeHTML(
-                                reagent.name
-                            )}
-                        </td>
-
-                        <td>
-                            ${reagent.open_count}
-                        </td>
-
-                        <td>
-                            ${reagent.unopened_count}
-                        </td>
-
-                        <td>
-                            ${formatTime(
-                                reagent.last_updated
-                            )}
-                        </td>
-                    `;
-
-                    table.appendChild(
-                        row
-                    );
-                }
-            );
-        }
-
-
-        /* ==========================================================
-           RENDER LOGS
-        ========================================================== */
-
-        function renderLogs() {
-
-            const table =
-                $("logTable");
-
-            table.innerHTML = "";
-
-            if (!logs.length) {
-
-                table.innerHTML = `
-                    <tr>
-                        <td colspan="7">
-                            No logs yet.
-                        </td>
-                    </tr>
-                `;
-
-                return;
-            }
-
-            logs.forEach(
-                log => {
-
-                    const row =
-                        document.createElement(
-                            "tr"
-                        );
-
-                    row.innerHTML = `
-                        <td>
-                            ${formatTime(
-                                log.created_at
-                            )}
-                        </td>
-
-                        <td>
-                            ${escapeHTML(
-                                log.user_name
-                            )}
-                        </td>
-
-                        <td>
-                            ${escapeHTML(
-                                log.code
-                            )}
-                        </td>
-
-                        <td>
-                            ${escapeHTML(
-                                log.name
-                            )}
-                        </td>
-
-                        <td>
-                            ${escapeHTML(
-                                log.action
-                            )}
-                        </td>
-
-                        <td>
-                            ${escapeHTML(
-                                log.change_text
-                            )}
-                        </td>
-
-                        <td>
-                            ${escapeHTML(
-                                log.note || ""
-                            )}
-                        </td>
-                    `;
-
-                    table.appendChild(
-                        row
-                    );
-                }
-            );
-        }
-        function renderStandingOrders(orders) {
-
-            const table =
-                $("standingOrderTable");
-
-            table.innerHTML = "";
-
-            if (!orders.length) {
-
-                table.innerHTML = `
-                    <tr>
-                        <td colspan="8">
-                            No standing orders.
-                        </td>
-                    </tr>
-                `;
-
-                return;
-            }
-
-            orders.forEach(order => {
-
-                const row =
-                    document.createElement("tr");
-
-                row.innerHTML = `
-                    <td>${escapeHTML(order.order_number)}</td>
-                    <td>${escapeHTML(order.buffer_code)}</td>
-                    <td>${escapeHTML(order.buffer_name)}</td>
-                    <td>${escapeHTML(order.requestor)}</td>
-                    <td>${order.delivery_volume_l ?? ""}</td>
-                    <td>${escapeHTML(order.start_date)}</td>
-                    <td>${escapeHTML(order.end_date)}</td>
-                    <td>${escapeHTML(order.frequency)}</td>
-                `;
-
-                table.appendChild(row);
-            });
-        }
-
-
-        /* ==========================================================
-           REAGENT DROPDOWN
-        ========================================================== */
-
-        function updateReagentDropdown() {
-
-            const dropdown =
-                $("reagentSelect");
-
-            const oldValue =
-                dropdown.value;
-
-            dropdown.innerHTML = "";
-
-            if (!reagents.length) {
-
-                dropdown.innerHTML = `
-                    <option value="">
-                        No reagents available
-                    </option>
-                `;
-
-                return;
-            }
-
-            reagents.forEach(
-                reagent => {
-
-                    const option =
-                        document.createElement(
-                            "option"
-                        );
-
-                    option.value =
-                        reagent.id;
-
-                    option.textContent =
-                        reagent.code
-                        + " - "
-                        + reagent.name;
-
-                    dropdown.appendChild(
-                        option
-                    );
-                }
-            );
-
-            if (
-                reagents.some(
-                    reagent =>
-                        String(reagent.id)
-                        ===
-                        String(oldValue)
-                )
-            ) {
-
-                dropdown.value =
-                    oldValue;
-            }
-        }
-
-
-        /* ==========================================================
-           ADD NEW REAGENT
-        ========================================================== */
-
-        async function addNewReagent() {
-
-            const code =
-                $("newCode")
-                    .value
-                    .trim()
-                    .toUpperCase();
-
-            const name =
-                $("newName")
-                    .value
-                    .trim();
-
-            const quantity =
-                Number(
-                    $("initialUnopened")
-                        .value
-                );
-
-            const user =
-                $("newReagentUser")
-                    .value
-                    .trim();
-
-            const note =
-                $("newReagentNote")
-                    .value
-                    .trim();
-
-
-            if (!code || !name) {
-
-                alert(
-                    "Please enter both CODE and NAME."
-                );
-
-                return;
-            }
-
-
-            if (!user) {
-
-                alert(
-                    "Please enter your name."
-                );
-
-                return;
-            }
-
-
-            if (
-                reagents.some(
-                    reagent =>
-                        reagent.code
-                            .toUpperCase()
-                        ===
-                        code
-                )
-            ) {
-
-                alert(
-                    "This reagent code already exists."
-                );
-
-                return;
-            }
-
-
-            const {
-                data,
-                error
-            } = await supabaseClient
-                .from("reagents")
-                .insert({
-                    code,
-                    name,
-                    open_count: 0,
-                    unopened_count:
-                        quantity,
-                    last_updated:
-                        new Date()
-                            .toISOString()
-                })
-                .select()
-                .single();
-
-
-            if (error) {
-
-                alert(
-                    "Unable to add reagent:\n"
-                    + error.message
-                );
-
-                return;
-            }
-
-
-            await createLog(
-                data,
-                user,
-                "NEW REAGENT",
-                `Open: 0 | Unopened: 0 → ${quantity}`,
-                note
-            );
-
-
-            $("newCode").value = "";
-            $("newName").value = "";
-            $("initialUnopened").value = "0";
-            $("newReagentNote").value = "";
-
-
-            await refreshAll();
-
-
-            alert(
-                "New reagent added successfully."
-            );
-        }
-
-
-        /* ==========================================================
-           UPDATE FORM
-        ========================================================== */
-
-        function updateForm() {
-
-            const action =
-                $("actionSelect").value;
-
-            const areas = {
-                quantityArea:
-                    [
-                        "NEW_STOCK",
-                        "OPEN",
-                        "FINISHED"
-                    ]
-                        .includes(action),
-
-                expiredArea:
-                    action ===
-                    "EXPIRED",
-
-                physicalCountArea:
-                    action ===
-                    "PHYSICAL_COUNT",
-
-                errorCorrectionArea:
-                    action ===
-                    "INPUT_ERROR"
-            };
-
-
-            Object.entries(
-                areas
-            )
-            .forEach(
-                ([id, visible]) => {
-
-                    $(id).style.display =
-                        visible
-                            ? "block"
-                            : "none";
-                }
-            );
-        }
-
-
-        /* ==========================================================
-           UPDATE INVENTORY
-        ========================================================== */
-
-        async function updateInventory() {
-
-            if (!reagents.length) {
-
-                alert(
-                    "There are no reagents in the database."
-                );
-
-                return;
-            }
-
-
-            const reagentId =
-                Number(
-                    $("reagentSelect")
-                        .value
-                );
-
-
-            /* Always get fresh data */
-
-            const {
-                data: reagent,
-                error
-            } = await supabaseClient
-                .from("reagents")
-                .select("*")
-                .eq(
-                    "id",
-                    reagentId
-                )
-                .single();
-
-
-            if (error) {
-
-                alert(
-                    "Could not load the latest inventory:\n"
-                    + error.message
-                );
-
-                return;
-            }
-
-
-            const action =
-                $("actionSelect").value;
-
-            const user =
-                $("updatedBy")
-                    .value
-                    .trim();
-
-            const note =
-                $("note")
-                    .value
-                    .trim();
-
-
-            if (!user) {
-
-                alert(
-                    "Please enter your name."
-                );
-
-                return;
-            }
-
-
-            const oldOpen =
-                reagent.open_count;
-
-            const oldUnopened =
-                reagent.unopened_count;
-
-
-            let newOpen =
-                oldOpen;
-
-            let newUnopened =
-                oldUnopened;
-
-            let changeText =
-                "";
-
-
-            /* NEW STOCK */
-
-            if (
-                action ===
-                "NEW_STOCK"
-            ) {
-
-                const quantity =
-                    Number(
-                        $("quantity")
-                            .value
-                    );
-
-                newUnopened +=
-                    quantity;
-
-                changeText =
-                    `Unopened: ${oldUnopened} → ${newUnopened}`;
-            }
-
-
-            /* OPEN */
-
-            else if (
-                action ===
-                "OPEN"
-            ) {
-
-                const quantity =
-                    Number(
-                        $("quantity")
-                            .value
-                    );
-
-
-                if (
-                    quantity >
-                    oldUnopened
-                ) {
-
-                    alert(
-                        `Not enough unopened bottles.\nCurrently available: ${oldUnopened}`
-                    );
-
-                    return;
-                }
-
-
-                newUnopened -=
-                    quantity;
-
-                newOpen +=
-                    quantity;
-
-                changeText =
-                    `Unopened: ${oldUnopened} → ${newUnopened} | Open: ${oldOpen} → ${newOpen}`;
-            }
-
-
-            /* FINISHED */
-
-            else if (
-                action ===
-                "FINISHED"
-            ) {
-
-                const quantity =
-                    Number(
-                        $("quantity")
-                            .value
-                    );
-
-
-                if (
-                    quantity >
-                    oldOpen
-                ) {
-
-                    alert(
-                        `Not enough open bottles.\nCurrently available: ${oldOpen}`
-                    );
-
-                    return;
-                }
-
-
-                newOpen -=
-                    quantity;
-
-                changeText =
-                    `Open: ${oldOpen} → ${newOpen}`;
-            }
-
-
-            /* EXPIRED */
-
-            else if (
-                action ===
-                "EXPIRED"
-            ) {
-
-                const status =
-                    $("expiredStatus")
-                        .value;
-
-                const quantity =
-                    Number(
-                        $("expiredQuantity")
-                            .value
-                    );
-
-
-                if (
-                    status ===
-                    "OPEN"
-                ) {
-
-                    if (
-                        quantity >
-                        oldOpen
-                    ) {
-
-                        alert(
-                            `Not enough open bottles.\nCurrently available: ${oldOpen}`
-                        );
-
-                        return;
-                    }
-
-                    newOpen -=
-                        quantity;
-
-                    changeText =
-                        `Expired OPEN: ${oldOpen} → ${newOpen}`;
-                }
-
-                else {
-
-                    if (
-                        quantity >
-                        oldUnopened
-                    ) {
-
-                        alert(
-                            `Not enough unopened bottles.\nCurrently available: ${oldUnopened}`
-                        );
-
-                        return;
-                    }
-
-                    newUnopened -=
-                        quantity;
-
-                    changeText =
-                        `Expired UNOPENED: ${oldUnopened} → ${newUnopened}`;
-                }
-            }
-
-
-            /* PHYSICAL COUNT */
-
-            else if (
-                action ===
-                "PHYSICAL_COUNT"
-            ) {
-
-                newOpen =
-                    Number(
-                        $("actualOpen")
-                            .value
-                    );
-
-                newUnopened =
-                    Number(
-                        $("actualUnopened")
-                            .value
-                    );
-
-                changeText =
-                    `Open: ${oldOpen} → ${newOpen} | Unopened: ${oldUnopened} → ${newUnopened}`;
-            }
-
-
-            /* INPUT ERROR */
-
-            else if (
-                action ===
-                "INPUT_ERROR"
-            ) {
-
-                newOpen =
-                    Number(
-                        $("correctOpen")
-                            .value
-                    );
-
-                newUnopened =
-                    Number(
-                        $("correctUnopened")
-                            .value
-                    );
-
-                changeText =
-                    `Open: ${oldOpen} → ${newOpen} | Unopened: ${oldUnopened} → ${newUnopened}`;
-            }
-
-
-            const confirmed =
-                confirm(
-                    `Reagent: ${reagent.code} - ${reagent.name}
-
-Action: ${action}
-
-${changeText}
-
-Updated by: ${user}
-
-Confirm this update?`
-                );
-
-
-            if (!confirmed) {
-                return;
-            }
-
-
-            const {
-                error: updateError
-            } = await supabaseClient
-                .from("reagents")
-                .update({
-                    open_count:
-                        newOpen,
-
-                    unopened_count:
-                        newUnopened,
-
-                    last_updated:
-                        new Date()
-                            .toISOString()
-                })
-                .eq(
-                    "id",
-                    reagent.id
-                );
-
-
-            if (updateError) {
-
-                alert(
-                    "Inventory update failed:\n"
-                    + updateError.message
-                );
-
-                return;
-            }
-
-
-            const logError =
-                await createLog(
-                    reagent,
-                    user,
-                    action,
-                    changeText,
-                    note
-                );
-
-
-            if (logError) {
-
-                alert(
-                    "Inventory updated, but the log could not be saved."
-                );
-            }
-
-
-            $("note").value = "";
-
-
-            await refreshAll();
-
-
-            alert(
-                "Inventory updated successfully."
-            );
-        }
-
-
-        /* ==========================================================
-           CREATE LOG
-        ========================================================== */
-
-        async function createLog(
-            reagent,
-            user,
-            action,
-            changeText,
-            note
-        ) {
-
-            const {
-                error
-            } = await supabaseClient
-                .from("logs")
-                .insert({
-
-                    reagent_id:
-                        reagent.id,
-
-                    code:
-                        reagent.code,
-
-                    name:
-                        reagent.name,
-
-                    user_name:
-                        user,
-
-                    action,
-
-                    change_text:
-                        changeText,
-
-                    note:
-                        note || ""
-                });
-
-
-            if (error) {
-
-                console.error(
-                    "Log error:",
-                    error
-                );
-
-                return error;
-            }
-
-
-            return null;
-        }
-
-
-        /* ==========================================================
-           START
-        ========================================================== */
-
-        createNumberOptions();
-
-        updateForm();
-
-        refreshAll();
-
-
-        /* Refresh every 5 seconds */
-
-        setInterval(
-            refreshAll,
-            5000
+        const newCount = current - item.qty;
+        const {error:updateError} = await supabaseClient
+          .from("reagent_lots")
+          .update({unopened_count:newCount,last_updated:new Date().toISOString()})
+          .eq("id",fresh.id);
+        if (updateError) return alert("Inventory update failed:\n"+updateError.message);
+
+        await createLog(
+          reagent,
+          user,
+          "OPEN_BOTTLE",
+          `Lot ${fresh.lot_number} | Unopened: ${current} → ${newCount}`,
+          `Expiration: ${fresh.expiration_date || "N/A"}`
+        );
+        delete pendingUse[fresh.id];
+      }
+
+      await refreshAll();
+      alert("Inventory updated successfully.");
+    }
+
+    function renderLogs() {
+      const table = $("logTable");
+      table.innerHTML = "";
+      if (!logs.length) {
+        table.innerHTML = `<tr><td colspan="7">No logs yet.</td></tr>`;
+        return;
+      }
+      logs.forEach(log => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${formatTime(log.created_at)}</td>
+          <td>${escapeHTML(log.user_name)}</td>
+          <td>${escapeHTML(log.code)}</td>
+          <td>${escapeHTML(log.name)}</td>
+          <td>${escapeHTML(log.action)}</td>
+          <td>${escapeHTML(log.change_text)}</td>
+          <td>${escapeHTML(log.note || "")}</td>`;
+        table.appendChild(row);
+      });
+    }
+
+    function renderStandingOrders() {
+      const table = $("standingOrderTable");
+      table.innerHTML = "";
+      if (!standingOrders.length) {
+        table.innerHTML = `<tr><td colspan="8">No standing orders.</td></tr>`;
+        return;
+      }
+      standingOrders.forEach(order => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${escapeHTML(order.order_number)}</td>
+          <td>${escapeHTML(order.buffer_code)}</td>
+          <td>${escapeHTML(order.buffer_name)}</td>
+          <td>${escapeHTML(order.requestor)}</td>
+          <td>${order.delivery_volume_l ?? ""}</td>
+          <td>${formatDate(order.start_date)}</td>
+          <td>${formatDate(order.end_date)}</td>
+          <td>${escapeHTML(order.frequency)}</td>`;
+        table.appendChild(row);
+      });
+    }
+
+    function updateReagentDropdown() {
+      const dropdown = $("reagentSelect");
+      const oldValue = dropdown.value;
+      dropdown.innerHTML = "";
+      if (!reagents.length) {
+        dropdown.innerHTML = `<option value="">No reagents available</option>`;
+        return;
+      }
+      reagents.forEach(reagent => {
+        const option = document.createElement("option");
+        option.value = reagent.id;
+        option.textContent = `${reagent.code} - ${reagent.name}`;
+        dropdown.appendChild(option);
+      });
+      if (reagents.some(r => String(r.id) === String(oldValue))) dropdown.value = oldValue;
+      updateLotDropdown();
+    }
+
+    function updateLotDropdown() {
+      const select = $("lotSelect");
+      if (!select) return;
+      const reagentId = Number($("reagentSelect").value);
+      const rs = reagentLots(reagentId);
+      select.innerHTML = "";
+      if (!rs.length) {
+        select.innerHTML = `<option value="">No lots available</option>`;
+        return;
+      }
+      rs.forEach(lot => {
+        const opt = document.createElement("option");
+        opt.value = lot.id;
+        opt.textContent = `${lot.lot_number} | Exp ${formatDate(lot.expiration_date)} | ${lot.unopened_count} unopened`;
+        select.appendChild(opt);
+      });
+    }
+
+    async function addNewReagent() {
+      const code = $("newCode").value.trim().toUpperCase();
+      const name = $("newName").value.trim();
+      const user = $("newReagentUser").value.trim();
+      const note = $("newReagentNote").value.trim();
+      if (!code || !name) return alert("Please enter both CODE and NAME.");
+      if (!user) return alert("Please enter your name.");
+      if (reagents.some(r => r.code.toUpperCase() === code)) return alert("This reagent code already exists.");
+
+      const {data,error} = await supabaseClient
+        .from("reagents")
+        .insert({code,name,last_updated:new Date().toISOString()})
+        .select().single();
+      if (error) return alert("Unable to add reagent:\n"+error.message);
+
+      await createLog(data,user,"NEW_REAGENT","Reagent master record created",note);
+      $("newCode").value = "";
+      $("newName").value = "";
+      $("newReagentNote").value = "";
+      await refreshAll();
+      alert("New reagent added successfully. Add stock through Update Inventory.");
+    }
+
+    function updateAdminForm() {
+      const action = $("actionSelect").value;
+      const newStock = action === "NEW_STOCK";
+      const existingLot = ["EXPIRED","PHYSICAL_COUNT","INPUT_ERROR"].includes(action);
+      $("newStockArea").style.display = newStock ? "block" : "none";
+      $("existingLotArea").style.display = existingLot ? "block" : "none";
+      $("lotQuantityArea").style.display = action === "EXPIRED" ? "block" : "none";
+      $("physicalCountArea").style.display = action === "PHYSICAL_COUNT" ? "block" : "none";
+      $("errorCorrectionArea").style.display = action === "INPUT_ERROR" ? "block" : "none";
+      if (existingLot) updateLotDropdown();
+    }
+
+    async function updateInventory() {
+      if (!reagents.length) return alert("There are no reagents in the database.");
+      const reagentId = Number($("reagentSelect").value);
+      const reagent = reagents.find(r => Number(r.id) === reagentId);
+      const action = $("actionSelect").value;
+      const user = $("updatedBy").value.trim();
+      const note = $("note").value.trim();
+      if (!reagent) return alert("Please select a reagent.");
+      if (!user) return alert("Please enter your name.");
+
+      if (action === "NEW_STOCK") {
+        const lotNumber = $("newLotNumber").value.trim();
+        const expirationDate = $("newExpirationDate").value;
+        const quantity = Number($("newStockQuantity").value);
+        if (!lotNumber) return alert("Please enter a lot number.");
+        if (!expirationDate) return alert("Please enter an expiration date.");
+
+        const existing = lots.find(l =>
+          Number(l.reagent_id) === reagentId &&
+          String(l.lot_number).trim().toUpperCase() === lotNumber.toUpperCase()
         );
 
-    </script>
+        if (existing) {
+          if (existing.expiration_date && existing.expiration_date !== expirationDate) {
+            return alert(
+              `Lot ${lotNumber} already exists.\n\nExisting expiration: ${formatDate(existing.expiration_date)}\nEntered expiration: ${formatDate(expirationDate)}\n\nPlease verify the lot number or expiration date.`
+            );
+          }
+          const oldCount = Number(existing.unopened_count || 0);
+          const newCount = oldCount + quantity;
+          const {error} = await supabaseClient
+            .from("reagent_lots")
+            .update({unopened_count:newCount,expiration_date:expirationDate,last_updated:new Date().toISOString()})
+            .eq("id",existing.id);
+          if (error) return alert("Unable to update lot:\n"+error.message);
+          await createLog(reagent,user,"NEW_STOCK",`Lot ${lotNumber} | Unopened: ${oldCount} → ${newCount}`,note || `Expiration: ${expirationDate}`);
+        } else {
+          const {error} = await supabaseClient
+            .from("reagent_lots")
+            .insert({
+              reagent_id:reagentId,
+              lot_number:lotNumber,
+              expiration_date:expirationDate,
+              unopened_count:quantity,
+              last_updated:new Date().toISOString()
+            });
+          if (error) return alert("Unable to create lot:\n"+error.message);
+          await createLog(reagent,user,"NEW_STOCK",`Lot ${lotNumber} created | Unopened: 0 → ${quantity}`,note || `Expiration: ${expirationDate}`);
+        }
+      } else {
+        const lotId = Number($("lotSelect").value);
+        const {data:lot,error:lotError} = await supabaseClient.from("reagent_lots").select("*").eq("id",lotId).single();
+        if (lotError || !lot) return alert("Please select a valid lot.");
+        const oldCount = Number(lot.unopened_count || 0);
+        let newCount = oldCount;
+        let changeText = "";
 
+        if (action === "EXPIRED") {
+          const qty = Number($("adminQuantity").value);
+          if (qty > oldCount) return alert(`Not enough unopened bottles. Currently available: ${oldCount}`);
+          newCount = oldCount - qty;
+          changeText = `Lot ${lot.lot_number} | Unopened: ${oldCount} → ${newCount}`;
+        } else if (action === "PHYSICAL_COUNT") {
+          const raw = $("actualUnopened").value;
+          if (raw === "" || !Number.isInteger(Number(raw)) || Number(raw) < 0) return alert("Enter a valid non-negative whole number.");
+          newCount = Number(raw);
+          changeText = `Lot ${lot.lot_number} | Physical Count: ${oldCount} → ${newCount}`;
+        } else if (action === "INPUT_ERROR") {
+          const raw = $("correctUnopened").value;
+          if (raw === "" || !Number.isInteger(Number(raw)) || Number(raw) < 0) return alert("Enter a valid non-negative whole number.");
+          newCount = Number(raw);
+          changeText = `Lot ${lot.lot_number} | Correction: ${oldCount} → ${newCount}`;
+        }
+
+        if (!confirm(`Reagent: ${reagent.code} - ${reagent.name}\nLot: ${lot.lot_number}\nAction: ${action}\n${changeText}\nUpdated by: ${user}\n\nConfirm?`)) return;
+
+        const {error:updateError} = await supabaseClient
+          .from("reagent_lots")
+          .update({unopened_count:newCount,last_updated:new Date().toISOString()})
+          .eq("id",lot.id);
+        if (updateError) return alert("Inventory update failed:\n"+updateError.message);
+        await createLog(reagent,user,action,changeText,note || `Expiration: ${lot.expiration_date || "N/A"}`);
+      }
+
+      $("note").value = "";
+      await refreshAll();
+      alert("Inventory updated successfully.");
+    }
+
+    async function saveAlarmSettings() {
+      const boxes = [...document.querySelectorAll('#alarmSettingsList input[type="checkbox"]')];
+      if (!boxes.length) return alert("No reagents available.");
+
+      const updates = boxes.map(box => ({
+        id:Number(box.dataset.reagentId),
+        alarm_enabled:box.checked
+      }));
+
+      for (const item of updates) {
+        const {error} = await supabaseClient
+          .from("reagents")
+          .update({alarm_enabled:item.alarm_enabled})
+          .eq("id",item.id);
+        if (error) {
+          console.error(error);
+          return alert("Alarm settings could not be saved yet. Complete the Supabase alarm columns/policies first.\n\n" + error.message);
+        }
+      }
+
+      await refreshAll();
+      alert("Alarm settings saved.");
+    }
+
+    async function sendAdminMessage() {
+      const senderName = $("messageName").value.trim();
+      const reagentIdRaw = $("messageReagent").value;
+      const message = $("messageText").value.trim();
+
+      if (!senderName) return alert("Please enter your name.");
+      if (!message) return alert("Please enter a message.");
+
+      const reagentId = reagentIdRaw ? Number(reagentIdRaw) : null;
+      const {error} = await supabaseClient.from("messages").insert({
+        sender_name:senderName,
+        reagent_id:reagentId,
+        message,
+        status:"NEW"
+      });
+
+      if (error) {
+        console.error(error);
+        return alert("Message could not be sent yet. Complete the Supabase messages table/policies first.\n\n" + error.message);
+      }
+
+      $("messageText").value = "";
+      $("messageSuccess").classList.add("show");
+      setTimeout(() => $("messageSuccess")?.classList.remove("show"), 4000);
+    }
+
+    async function createLog(reagent,user,action,changeText,note) {
+      const {error} = await supabaseClient.from("logs").insert({
+        reagent_id:reagent.id,
+        code:reagent.code,
+        name:reagent.name,
+        user_name:user,
+        action,
+        change_text:changeText,
+        note:note || ""
+      });
+      if (error) { console.error("Log error:",error); return error; }
+      return null;
+    }
+
+    function hasPendingQuickChanges() {
+      return Object.values(pendingUse).some(v => Number(v) > 0);
+    }
+
+    createNumberOptions();
+    updateAdminForm();
+    refreshAll();
+    setInterval(() => {
+      if (!hasPendingQuickChanges()) refreshAll();
+    }, 5000);
+  </script>
 </body>
 </html>
