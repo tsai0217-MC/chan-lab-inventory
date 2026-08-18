@@ -204,7 +204,7 @@
           <p>New Stock must include a <strong>Lot Number</strong> and <strong>Expiration Date</strong>. If the same reagent and lot already exist, the new quantity is added to that existing lot instead of creating a duplicate lot.</p>
 
           <h3>Low Stock Alarm</h3>
-          <p>Selected reagents may have a low-stock alarm enabled. When the total unopened quantity across all lots of an alarm-enabled reagent drops below <strong>3 bottles</strong>, a warning is displayed at the top of the Inventory Overview. Email notification is handled by the database notification system.</p>
+          <p>Selected reagents may have a low-stock / email alarm enabled. <strong>Only reagents with this alarm enabled</strong> can appear in the Low Stock Alert. When an enabled reagent has fewer than <strong>3 unopened bottles</strong> across all lots, a warning is displayed above the Inventory Overview. The same enabled/disabled setting will also control email notification once email delivery is connected.</p>
 
           <h3>Messages to the Buffer Tracking Admin</h3>
           <p>Use the message section near the bottom of the page to contact the Buffer Tracking System administrator about expected high usage, standing-order changes, or other inventory concerns.</p>
@@ -361,8 +361,8 @@
 
     <!-- LOW STOCK ALARM SETTINGS -->
     <section class="card">
-      <h2>🔔 Low Stock Alarm Settings <span class="admin-badge">Admin / advanced</span></h2>
-      <p class="helper">Choose which buffers should trigger a low-stock alert. An enabled buffer is considered low when the total unopened quantity across all lots is below 3 bottles. Email delivery will be handled by the Supabase trigger configured later.</p>
+      <h2>🔔 Low Stock / Email Alarm Settings</h2>
+      <p class="helper">Choose which buffers should have low-stock monitoring enabled. Only enabled buffers will appear in the Low Stock Alert when their total unopened quantity across all lots is below 3 bottles. The same setting will also control email notifications once email delivery is connected.</p>
       <div id="alarmSettingsList" class="alarm-grid"></div>
       <button type="button" onclick="saveAlarmSettings()">💾 Save Alarm Settings</button>
     </section>
@@ -472,9 +472,13 @@
       return { total, nearest, lastUpdated };
     }
 
+    function isAlarmEnabled(reagent) {
+      return reagent?.alarm_enabled === true || reagent?.alarm_enabled === "true" || reagent?.alarm_enabled === 1;
+    }
+
     function renderLowStockAlerts() {
       const low = reagents
-        .filter(r => r.alarm_enabled === true)
+        .filter(r => isAlarmEnabled(r))
         .map(r => ({reagent:r, total:reagentSummary(r.id).total}))
         .filter(x => x.total < 3);
 
@@ -497,7 +501,7 @@
       }
       box.innerHTML = reagents.map(r => `
         <div class="alarm-item">
-          <input type="checkbox" id="alarm-${r.id}" data-reagent-id="${r.id}" ${r.alarm_enabled === true ? "checked" : ""}>
+          <input type="checkbox" id="alarm-${r.id}" data-reagent-id="${r.id}" ${isAlarmEnabled(r) ? "checked" : ""}>
           <label for="alarm-${r.id}">${escapeHTML(r.code)} — ${escapeHTML(r.name)}</label>
         </div>`).join("");
     }
@@ -958,14 +962,21 @@
           .from("reagents")
           .update({alarm_enabled:item.alarm_enabled})
           .eq("id",item.id);
+
         if (error) {
           console.error(error);
-          return alert("Alarm settings could not be saved yet. Complete the Supabase alarm columns/policies first.\n\n" + error.message);
+          return alert("Alarm settings could not be saved.\n\n" + error.message);
         }
+
+        // Keep the browser copy in sync immediately so the banner follows
+        // the same alarm checkbox setting without waiting for another refresh cycle.
+        const reagent = reagents.find(r => Number(r.id) === Number(item.id));
+        if (reagent) reagent.alarm_enabled = item.alarm_enabled;
       }
 
+      renderLowStockAlerts();
       await refreshAll();
-      alert("Alarm settings saved.");
+      alert("Low-stock / email alarm settings saved.");
     }
 
     async function sendAdminMessage() {
