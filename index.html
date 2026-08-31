@@ -414,6 +414,7 @@
     let logs = [];
     let standingOrders = [];
     const pendingUse = {}; // { lotId: numberOfBottlesToOpen }
+    const expandedReagents = new Set(); // remember which reagents are expanded across auto-refresh
 
     const $ = id => document.getElementById(id);
 
@@ -587,18 +588,30 @@
 
         const details = document.createElement("tr");
         details.className = "lot-detail-row";
-        details.style.display = "none";
+        const isExpanded = expandedReagents.has(Number(reagent.id));
+        details.style.display = isExpanded ? "table-row" : "none";
+        main.classList.toggle("expanded", isExpanded);
         details.innerHTML = `<td colspan="5"><div class="lot-panel" id="lotPanel-${reagent.id}"></div></td>`;
 
         main.addEventListener("click", () => {
-          const opening = details.style.display === "none";
-          details.style.display = opening ? "table-row" : "none";
-          main.classList.toggle("expanded", opening);
-          if (opening) renderLotPanel(reagent);
+          const reagentId = Number(reagent.id);
+
+          if (expandedReagents.has(reagentId)) {
+            expandedReagents.delete(reagentId);
+            details.style.display = "none";
+            main.classList.remove("expanded");
+          } else {
+            expandedReagents.add(reagentId);
+            details.style.display = "table-row";
+            main.classList.add("expanded");
+            renderLotPanel(reagent);
+          }
         });
 
         table.appendChild(main);
         table.appendChild(details);
+
+        if (isExpanded) renderLotPanel(reagent);
       });
     }
 
