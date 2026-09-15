@@ -33,7 +33,7 @@
       --panel: rgba(255,255,255,.95);
       --bg: #f4f8fb;
       --shadow: 0 10px 32px rgba(43, 83, 118, .09);
-      --sidebar: 220px;
+      --sidebar: 230px;
     }
 
     html { scroll-behavior: smooth; }
@@ -275,14 +275,13 @@
     /* ---------- Home ---------- */
     .home-grid { display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: 18px; }
     .hero {
-      min-height: 270px;
+      min-height: 260px;
       border-radius: 19px;
       overflow: hidden;
       position: relative;
       color: #fff;
       background:
-        linear-gradient(90deg,rgba(14,52,82,.88) 0%,rgba(25,77,114,.70) 43%,rgba(27,75,102,.23) 100%),
-        url("https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Oyster_Point%2C_South_San_Francisco_ferry_terminal_%2839183690920%29.jpg/1024px-Oyster_Point%2C_South_San_Francisco_ferry_terminal_%2839183690920%29.jpg") center/cover;
+        #dcecff url("images/ssf_genentech.png") center/cover no-repeat;
       box-shadow: var(--shadow);
       border: 1px solid rgba(180,211,229,.7);
       padding: 38px;
@@ -293,10 +292,11 @@
     .hero::after {
       content: "";
       position: absolute; inset: 0;
-      background: linear-gradient(180deg,transparent 58%,rgba(11,42,65,.22));
+      background: transparent;
       pointer-events: none;
     }
     .hero > * { position: relative; z-index: 1; }
+    .hero .kicker, .hero h1, .hero .sub, .hero .quote { visibility: hidden; }
     .hero .kicker { letter-spacing: .28em; font-size: 11px; font-weight: 800; text-transform: uppercase; opacity: .9; }
     .hero h1 { margin: 10px 0 5px; font-family: Georgia,"Times New Roman",serif; font-size: clamp(40px,6vw,66px); line-height: .98; font-weight: 600; }
     .hero h1 span { color: #cce9ff; }
@@ -329,11 +329,11 @@
       display: flex;
       flex-direction: column;
     }
-    .category-visual { height: 150px; position: relative; overflow: hidden; }
-    .category-visual.buffer { background: linear-gradient(145deg,#c9e6fa,#eaf6ff); }
-    .category-visual.matrix { background: linear-gradient(145deg,#dff2e8,#f0fbf5); }
-    .category-visual.advanced { background: linear-gradient(145deg,#fee5d0,#fff4e9); }
-    .category-visual .emoji-art { position: absolute; right: 25px; bottom: 12px; font-size: 92px; filter: drop-shadow(0 12px 10px rgba(34,67,92,.12)); }
+    .category-visual { height: 165px; position: relative; overflow: hidden; }
+    .category-visual.buffer { background: #eaf6ff url("images/common-buffers.png") center/cover no-repeat; }
+    .category-visual.matrix { background: #f0fbf5 url("images/biological-matrices.png") center/cover no-repeat; }
+    .category-visual.advanced { background: #fff4e9 url("images/advanced-update.png") center/cover no-repeat; }
+    .category-visual .emoji-art { display:none; }
     .category-visual .number { position: absolute; left: 20px; top: 17px; font-family: Georgia,"Times New Roman",serif; font-size: 14px; color: #486f91; }
     .category-body { padding: 20px; flex: 1; display: flex; flex-direction: column; }
     .category-body h3 { margin: 0 0 7px; font-family: Georgia,"Times New Roman",serif; font-size: 27px; color: #153b5a; }
@@ -351,7 +351,7 @@
       gap: 18px;
       background: linear-gradient(100deg,#edf5ff,#f5f4ff 50%,#eef8ff);
     }
-    .cute-scientist { width: 170px; height: 118px; }
+    .cute-scientist { width: 170px; height: 118px; object-fit: contain; border-radius: 16px; }
     .future-card h3 { font-family: Georgia,"Times New Roman",serif; color: #2e5683; font-size: 24px; margin: 0 0 6px; }
     .future-card p { margin: 0; color: #536c82; font-size: 13px; line-height: 1.55; }
     .future-list { display: grid; gap: 7px; color: #57728a; font-size: 12px; }
@@ -611,22 +611,7 @@
       </div>
 
       <section class="future-card card">
-        <svg class="cute-scientist" viewBox="0 0 180 120" aria-hidden="true">
-          <ellipse cx="75" cy="112" rx="58" ry="7" fill="#dfeaf4"/>
-          <circle cx="62" cy="42" r="23" fill="#ffd8bd"/>
-          <path d="M39 38c5-23 43-28 51-3 2 7 0 14-2 18-4-11-12-16-23-15-8 1-14 5-20 11-4-3-7-7-6-11z" fill="#2f3c4b"/>
-          <circle cx="55" cy="44" r="2" fill="#34475a"/><circle cx="70" cy="44" r="2" fill="#34475a"/>
-          <path d="M56 55c5 4 10 4 15 0" stroke="#bd705f" stroke-width="2" fill="none" stroke-linecap="round"/>
-          <path d="M40 68c11-11 34-11 45 0l8 41H32z" fill="#fff" stroke="#a7bfd2" stroke-width="2"/>
-          <path d="M59 68v42M51 81h17" stroke="#9fb8ca" stroke-width="2"/>
-          <path d="M97 48h33l-6 14h-21z" fill="#cceeff" stroke="#6aa5cf" stroke-width="2"/>
-          <path d="M110 62l-10 43h35l-11-43" fill="#bce9f7" stroke="#5f9ec6" stroke-width="2"/>
-          <path d="M103 89c9-4 19 5 29 0v14h-31z" fill="#63c4db" opacity=".8"/>
-          <path d="M83 76c9 5 15 11 21 20" stroke="#ffd8bd" stroke-width="9" stroke-linecap="round"/>
-          <path d="M103 77c-2-8 3-14 7-20" stroke="#ffd8bd" stroke-width="8" stroke-linecap="round"/>
-          <circle cx="137" cy="31" r="20" fill="#fff" stroke="#bad2e3"/>
-          <path d="M127 29c5-5 16-5 21 0M129 35h16" stroke="#5c7d96" stroke-width="2" stroke-linecap="round"/>
-        </svg>
+        <img class="cute-scientist" src="images/scientist.png" alt="Scientist illustration">
         <div>
           <h3>More Features Coming Soon!</h3>
           <p><strong>“MORE FUNCTION WILL COMING IN FUTURE!”</strong><br>Chan’s Lab Inventory System is designed to grow with the team. Biological matrices, richer analytics, and additional inventory categories can be added without changing the one-page structure.</p>
