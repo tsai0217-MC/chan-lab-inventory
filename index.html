@@ -272,7 +272,8 @@
     tbody tr:last-child td { border-bottom: 0; }
     tbody tr:hover > td { background: #f8fcff; }
 
-    /* ---------- Home ---------- */
+  
+  /* ---------- Home ---------- */
     .home-grid { display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: 18px; }
     .hero {
       min-height: 260px;
@@ -425,6 +426,7 @@
     .guide-body h4 { color: #2c6697; margin: 17px 0 5px; }
 
     /* ---------- Matrices ---------- */
+    .setup-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start; }
     .matrix-filter-grid { display: grid; grid-template-columns: 1.2fr repeat(3, .8fr); gap: 10px; margin-bottom: 14px; }
     .matrix-empty {
       min-height: 380px;
@@ -473,7 +475,7 @@
 
     @media (max-width: 1100px) {
       :root { --sidebar: 190px; }
-      .home-grid, .buffer-layout, .usage-grid, .advanced-grid { grid-template-columns: 1fr; }
+      .home-grid, .buffer-layout, .usage-grid, .advanced-grid, .instruction-grid { grid-template-columns: 1fr !important; }
       .category-grid { grid-template-columns: 1fr 1fr; }
       .right-stack { grid-template-columns: 1fr 1fr; }
       .future-card { grid-template-columns: 150px 1fr; }
@@ -489,7 +491,7 @@
       .main { margin-left:0; padding:14px; }
       .topbar { flex-wrap:wrap; }
       .connection-pill { margin-left:0; }
-      .category-grid,.right-stack,.form-grid,.matrix-filter-grid,.mini-stats { grid-template-columns:1fr; }
+      .category-grid,.right-stack,.form-grid,.matrix-filter-grid,.mini-stats,.setup-grid { grid-template-columns:1fr; }
       .future-card { grid-template-columns:1fr; text-align:center; }
       .cute-scientist { margin:auto; }
       .hero { padding:28px 22px; min-height:240px; }
@@ -594,7 +596,7 @@
           </section>
 
           <section class="card card-pad">
-            <div class="section-head" style="margin-bottom:12px"><div><div class="eyebrow">Live overview</div><h3 style="margin:3px 0 0">Quick Stats</h3></div></div>
+            <div class="section-head" style="margin-bottom:12px"><div><div class="eyebrow">Live overview for buffer</div><h3 style="margin:3px 0 0">Common Buffers</h3></div></div>
             <div class="stats-grid">
               <div class="stat blue"><span>Total buffer types</span><b id="homeStatBuffers">0</b></div>
               <div class="stat red"><span>Alarm-enabled low stock</span><b id="homeStatLow">0</b></div>
@@ -604,11 +606,47 @@
           </section>
 
           <section class="card card-pad">
+            <div class="section-head" style="margin-bottom:12px"><div><div class="eyebrow">Live overview for matrix</div><h3 style="margin:3px 0 0">Biological Matrices</h3></div></div>
+            <div class="stats-grid">
+              <div class="stat blue"><span>Total matrix records</span><b id="homeMatrixRecords">0</b></div>
+              <div class="stat green"><span>Total quantity</span><b id="homeMatrixQty">0</b></div>
+              <div class="stat orange"><span>Species represented</span><b id="homeMatrixSpecies">0</b></div>
+              <div class="stat blue"><span>Matrix types</span><b id="homeMatrixTypes">0</b></div>
+            </div>
+          </section>
+
+          <section class="card card-pad">
             <div class="section-head" style="margin-bottom:12px"><div><div class="eyebrow">Latest</div><h3 style="margin:3px 0 0">Recent Activities</h3></div><button class="soft-btn" onclick="goToView('logs')">View All</button></div>
             <div id="homeRecentActivity" class="recent-list"><div class="muted">Loading activity…</div></div>
           </section>
         </aside>
       </div>
+
+      <section class="card home-instructions" style="margin-top:18px;padding:24px;">
+        <div class="section-head" style="margin-bottom:18px">
+          <div>
+            <div class="eyebrow">Quick Guide</div>
+            <h2 class="section-title" style="font-size:28px;margin-top:4px">How to Use This Inventory System</h2>
+            <p class="helper">Please update inventory when material is taken for use so the system reflects what is actually available to the lab.</p>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px" class="instruction-grid">
+          <div style="border:1px solid var(--line);border-radius:18px;padding:18px;background:var(--soft-blue)">
+            <div class="eyebrow">🧴 Common Buffers</div>
+            <h3 style="margin:7px 0 8px">Unopened bottles only</h3>
+            <p class="helper" style="margin:0">This system tracks <strong>unopened buffer bottles only</strong>. Whenever a new bottle is taken for use, update the corresponding lot using the arrow controls and submit the change. Bottles that are already open and in use are not included in the inventory count.</p>
+          </div>
+          <div style="border:1px solid var(--line);border-radius:18px;padding:18px;background:var(--soft-green)">
+            <div class="eyebrow">🧬 Biological Matrices</div>
+            <h3 style="margin:7px 0 8px">Update when material is used</h3>
+            <p class="helper" style="margin:0">Matrix inventory represents material currently available for use. Whenever matrix material is taken or used, please update the corresponding quantity so the inventory remains accurate.</p>
+          </div>
+        </div>
+        <div style="margin-top:14px;border:1px solid var(--line);border-radius:18px;padding:18px;background:#fff">
+          <div class="eyebrow">✓ Keep Inventory Accurate</div>
+          <p class="helper" style="margin:7px 0 0">Update the system at the time material is taken whenever possible. Use <strong>Advanced Update</strong> for adding new reagents or matrices, receiving stock, recording expired or discarded material, performing physical counts, or correcting known inventory errors.</p>
+        </div>
+      </section>
 
       <section class="future-card card">
         <img class="cute-scientist" src="images/scientist.png" alt="Scientist illustration">
@@ -679,33 +717,26 @@
     <!-- BIOLOGICAL MATRICES -->
     <section id="view-matrices" class="view">
       <section class="page-banner card">
-        <div><div class="eyebrow">Future inventory module</div><h1>🧬 Biological Matrices</h1><p>Designed for samples such as serum, plasma, tissue, cell lysate and related biological materials.</p></div>
+        <div><div class="eyebrow">Biological sample inventory</div><h1>🧬 Biological Matrices</h1><p>Search and manage matrix inventory by Species → Matrix → Strain.</p></div>
       </section>
 
       <section class="card card-pad">
-        <div class="section-head"><div><h2 class="section-title">Search & Filter</h2><p class="helper">Instead of repeatedly expanding nested categories, matrices will use cascading filters.</p></div></div>
+        <div class="section-head"><div><h2 class="section-title">Search & Filter</h2><p class="helper">Filter inventory without repeatedly expanding nested categories. New matrix records are added from Advanced Update.</p></div><button class="primary-btn" onclick="goToView('advanced')">＋ Add Matrix</button></div>
         <div class="matrix-filter-grid">
-          <input type="search" placeholder="Search sample name, code, lot number…" disabled>
-          <select disabled><option>Species — All</option><option>Mouse</option><option>Cyno</option></select>
-          <select disabled><option>Matrix — All</option><option>Serum</option><option>Plasma</option></select>
-          <select disabled><option>Strain — All</option><option>CD-1</option><option>BALB/c</option><option>C57BL/6</option></select>
+          <input id="matrixSearch" type="search" placeholder="Search species, matrix, strain, sex, location…">
+          <select id="matrixSpeciesFilter"><option value="">Species — All</option></select>
+          <select id="matrixTypeFilter"><option value="">Matrix — All</option></select>
+          <select id="matrixStrainFilter"><option value="">Strain — All</option></select>
         </div>
 
-        <div class="matrix-empty">
-          <div>
-            <div class="icon">🧫</div>
-            <h3>Matrix inventory is ready for the next database module.</h3>
-            <p class="helper" style="max-width:620px;margin:0 auto">The UI structure is already prepared. When the new Supabase tables are added, this page can populate Species → Matrix → Strain filters without changing the rest of the website.</p>
-            <div class="classification"><span class="chip">Species: Mouse / Cyno / …</span><span class="chip">Matrix: Serum / Plasma / …</span><span class="chip">Strain: CD-1 / BALB/c / C57BL/6 / …</span><span class="chip">Lot + Expiration + Quantity</span></div>
-          </div>
-        </div>
+        <div id="matrixInventory"></div>
       </section>
     </section>
 
     <!-- ADVANCED UPDATE -->
     <section id="view-advanced" class="view">
       <section class="page-banner card advanced-intro">
-        <div><div class="eyebrow">For detailed inventory operations</div><h1>⚙ Advanced Update</h1><p>Routine bottle opening stays in Common Buffers using the arrow controls. Use this page for receiving stock, discarding material, physical counts, and corrections.</p></div>
+        <div><div class="eyebrow">For detailed inventory management</div><h1>⚙ Advanced Update</h1><p>Use Advanced Update for inventory setup and non-routine changes across the lab. Add new reagents or biological matrices here, receive stock, record expired or discarded material, perform physical counts, and correct known inventory errors. Routine Common Buffer usage should still be recorded with the arrow controls on the Common Buffers page.</p></div>
       </section>
 
       <div class="advanced-grid">
@@ -721,14 +752,32 @@
             <p class="helper">All quantity fields on this page use direct number entry. New Stock and Expired / Discard require at least 1. Physical Count and Input Error Correction may be 0.</p>
           </section>
 
-          <section class="card card-pad" style="margin-top:16px">
-            <div class="section-head"><div><div class="eyebrow">Master record</div><h2 class="section-title" style="font-size:24px">＋ Add New Reagent</h2><p class="helper">Creates a reagent master record only. Add physical inventory through New Stock.</p></div></div>
-            <div class="form-row"><label for="newCode">Code</label><input id="newCode" type="text" placeholder="Example: A4806"></div>
-            <div class="form-row"><label for="newName">Name</label><input id="newName" type="text" placeholder="Example: LM BCP Block Buffer"></div>
-            <div class="form-row"><label for="newReagentUser">Added By</label><input id="newReagentUser" type="text" placeholder="Your name"></div>
-            <div class="form-row"><label for="newReagentNote">Note</label><input id="newReagentNote" type="text" placeholder="Optional"></div>
-            <button class="primary-btn" onclick="addNewReagent()">⚗ Add Reagent</button>
-          </section>
+          <div class="setup-grid" style="margin-top:16px">
+            <section class="card card-pad">
+              <div class="section-head"><div><div class="eyebrow">Common Buffers · Master record</div><h2 class="section-title" style="font-size:24px">＋ Add New Reagent</h2><p class="helper">Create a new Common Buffer / reagent master record. This does not add physical stock; after creating the reagent, use <strong>New Stock</strong> in Update Inventory to register its lot, expiration date, and quantity.</p></div></div>
+              <div class="form-row"><label for="newCode">Code</label><input id="newCode" type="text" placeholder="Example: A4806"></div>
+              <div class="form-row"><label for="newName">Name</label><input id="newName" type="text" placeholder="Example: LM BCP Block Buffer"></div>
+              <div class="form-row"><label for="newReagentUser">Added By</label><input id="newReagentUser" type="text" placeholder="Your name"></div>
+              <div class="form-row"><label for="newReagentNote">Note</label><input id="newReagentNote" type="text" placeholder="Optional"></div>
+              <button class="primary-btn" onclick="addNewReagent()">⚗ Add Reagent</button>
+            </section>
+
+            <section class="card card-pad">
+              <div class="section-head"><div><div class="eyebrow">Biological Matrices · Inventory record</div><h2 class="section-title" style="font-size:24px">＋ Add New Matrix</h2><p class="helper">Add a biological matrix inventory record using the information currently tracked by the system. Species and Matrix Type are required; strain, sex, and storage location can be added when applicable.</p></div></div>
+              <div class="form-row"><label for="matrixSpecies">Species *</label><input id="matrixSpecies" type="text" placeholder="Mouse, Cyno, Rat…"></div>
+              <div class="form-row"><label for="matrixType">Matrix Type *</label><input id="matrixType" type="text" placeholder="Serum, Plasma…"></div>
+              <div class="form-grid">
+                <div class="form-row"><label for="matrixStrain">Strain</label><input id="matrixStrain" type="text" placeholder="CD-1, BALB/c, C57BL/6…"></div>
+                <div class="form-row"><label for="matrixSex">Sex</label><input id="matrixSex" type="text" placeholder="Male, Female, Mixed…"></div>
+              </div>
+              <div class="form-grid">
+                <div class="form-row"><label for="matrixQuantity">Quantity *</label><input id="matrixQuantity" type="number" min="0" step="any" value="0"></div>
+                <div class="form-row"><label for="matrixUnit">Unit *</label><input id="matrixUnit" type="text" placeholder="mL, aliquots, bottles…"></div>
+              </div>
+              <div class="form-row"><label for="matrixLocation">Storage Location</label><input id="matrixLocation" type="text" placeholder="Freezer / refrigerator / room…"></div>
+              <button id="matrixAddBtn" class="primary-btn" onclick="addMatrixSample()">🧫 Add Matrix</button>
+            </section>
+          </div>
         </div>
 
         <section class="card card-pad">
@@ -815,6 +864,7 @@
   let lots = [];
   let logs = [];
   let standingOrders = [];
+  let matrixSamples = [];
   const pendingUse = {};
   const expandedReagents = new Set();
   const usageSelected = new Set();
@@ -828,6 +878,49 @@
     div.textContent = value == null ? "" : String(value);
     return div.innerHTML;
   }
+
+  /* ---------- Biological Matrices ---------- */
+  function matrixValue(v) { return v == null ? "" : String(v).trim(); }
+  function uniqueMatrixValues(key) { return [...new Set(matrixSamples.map(x=>matrixValue(x[key])).filter(Boolean))].sort((a,b)=>a.localeCompare(b)); }
+
+  function renderMatrixFilters() {
+    const configs = [["matrixSpeciesFilter","species","Species — All"],["matrixTypeFilter","matrix_type","Matrix — All"],["matrixStrainFilter","strain","Strain — All"]];
+    configs.forEach(([id,key,label])=>{
+      const el=$(id); if(!el) return; const current=el.value;
+      el.innerHTML=`<option value="">${label}</option>`+uniqueMatrixValues(key).map(v=>`<option value="${escapeHTML(v)}">${escapeHTML(v)}</option>`).join("");
+      if ([...el.options].some(o=>o.value===current)) el.value=current;
+    });
+  }
+
+  function filteredMatrices() {
+    const q=matrixValue($("matrixSearch")?.value).toLowerCase();
+    const species=$("matrixSpeciesFilter")?.value||"", type=$("matrixTypeFilter")?.value||"", strain=$("matrixStrainFilter")?.value||"";
+    return matrixSamples.filter(x=>{
+      const hay=[x.species,x.matrix_type,x.strain,x.sex,x.storage_location,x.quantity,x.unit].map(matrixValue).join(" ").toLowerCase();
+      return (!q||hay.includes(q)) && (!species||matrixValue(x.species)===species) && (!type||matrixValue(x.matrix_type)===type) && (!strain||matrixValue(x.strain)===strain);
+    });
+  }
+
+  function renderMatrices() {
+    const box=$("matrixInventory"); if(!box) return; const rows=filteredMatrices();
+    if(!matrixSamples.length){ box.innerHTML='<div class="matrix-empty"><div><div class="icon">🧫</div><h3>No biological matrices yet.</h3><p class="helper">Use “Add Matrix” to create the first inventory record.</p></div></div>'; return; }
+    if(!rows.length){ box.innerHTML='<div class="matrix-empty" style="min-height:220px"><div><div class="icon">🔎</div><h3>No matching matrices.</h3><p class="helper">Try another search term or clear a filter.</p></div></div>'; return; }
+    box.innerHTML=`<div class="table-wrapper"><table><thead><tr><th>SPECIES</th><th>MATRIX</th><th>STRAIN</th><th>SEX</th><th>QUANTITY</th><th>UNIT</th><th>STORAGE LOCATION</th></tr></thead><tbody>${rows.map(x=>`<tr><td><strong>${escapeHTML(matrixValue(x.species)||"—")}</strong></td><td>${escapeHTML(matrixValue(x.matrix_type)||"—")}</td><td>${escapeHTML(matrixValue(x.strain)||"—")}</td><td>${escapeHTML(matrixValue(x.sex)||"—")}</td><td><strong>${escapeHTML(matrixValue(x.quantity)||"0")}</strong></td><td>${escapeHTML(matrixValue(x.unit)||"—")}</td><td>${escapeHTML(matrixValue(x.storage_location)||"—")}</td></tr>`).join("")}</tbody></table></div>`;
+  }
+
+  function toggleMatrixForm(show){ const p=$("matrixAddPanel"); if(p) p.style.display=show?"block":"none"; }
+
+  async function addMatrixSample(){
+    const payload={species:matrixValue($("matrixSpecies")?.value),matrix_type:matrixValue($("matrixType")?.value),strain:matrixValue($("matrixStrain")?.value)||null,sex:matrixValue($("matrixSex")?.value)||null,quantity:Number($("matrixQuantity")?.value),unit:matrixValue($("matrixUnit")?.value),storage_location:matrixValue($("matrixLocation")?.value)||null};
+    if(!payload.species||!payload.matrix_type||!payload.unit||!Number.isFinite(payload.quantity)||payload.quantity<0){ alert("Please enter Species, Matrix Type, a valid Quantity, and Unit."); return; }
+    const btn=$("matrixAddBtn"); if(btn){btn.disabled=true;btn.textContent="Adding…";}
+    const {error}=await supabaseClient.from("matrix_samples").insert(payload);
+    if(btn){btn.disabled=false;btn.textContent="Add Matrix";}
+    if(error){console.error(error);alert("Could not add matrix: "+error.message);return;}
+    ["matrixSpecies","matrixType","matrixStrain","matrixSex","matrixUnit","matrixLocation"].forEach(id=>{if($(id))$(id).value="";}); if($("matrixQuantity"))$("matrixQuantity").value="0";
+    toggleMatrixForm(false); await loadMatrixSamples(); renderMatrixFilters(); renderMatrices();
+  }
+
 
   function formatTime(value) {
     if (!value) return "";
@@ -867,6 +960,7 @@
     if (view === "orders") renderStandingOrders();
     if (view === "messages") updateMessageReagentDropdown();
     if (view === "advanced") { updateReagentDropdown(); updateAdminForm(); }
+    if (view === "matrices") { renderMatrixFilters(); renderMatrices(); }
   }
 
   window.addEventListener("hashchange", () => renderActiveView(location.hash.replace("#","") || "home"));
@@ -952,9 +1046,16 @@
     return true;
   }
 
+  async function loadMatrixSamples() {
+    const {data,error} = await supabaseClient.from("matrix_samples").select("*").order("created_at",{ascending:false});
+    if (error) { console.error(error); setStatus("Matrix database error: "+error.message,"error"); return false; }
+    matrixSamples = data || [];
+    return true;
+  }
+
   async function refreshAll() {
     setStatus("Loading database…","loading");
-    const ok = await Promise.all([loadReagents(),loadLots(),loadLogs(),loadStandingOrders()]);
+    const ok = await Promise.all([loadReagents(),loadLots(),loadLogs(),loadStandingOrders(),loadMatrixSamples()]);
     if (ok.every(Boolean)) {
       updateReagentDropdown();
       updateMessageReagentDropdown();
@@ -967,6 +1068,8 @@
       renderStandingOrders();
       renderUsageFilters();
       renderUsageChart();
+      renderMatrixFilters();
+      renderMatrices();
       setStatus("● Connected to Supabase","success");
     }
   }
@@ -980,6 +1083,17 @@
     if ($("homeStatLow")) $("homeStatLow").textContent = lowStockReagents().length;
     if ($("homeStatExpiring")) $("homeStatExpiring").textContent = expiringLotCount();
     if ($("homeStatQty")) $("homeStatQty").textContent = totalQty;
+
+    const matrixTotalQty = matrixSamples.reduce((sum, item) => {
+      const q = Number(item.quantity);
+      return sum + (Number.isFinite(q) ? q : 0);
+    }, 0);
+    const matrixSpeciesCount = new Set(matrixSamples.map(x => matrixValue(x.species).toLowerCase()).filter(Boolean)).size;
+    const matrixTypeCount = new Set(matrixSamples.map(x => matrixValue(x.matrix_type).toLowerCase()).filter(Boolean)).size;
+    if ($("homeMatrixRecords")) $("homeMatrixRecords").textContent = matrixSamples.length;
+    if ($("homeMatrixQty")) $("homeMatrixQty").textContent = matrixTotalQty;
+    if ($("homeMatrixSpecies")) $("homeMatrixSpecies").textContent = matrixSpeciesCount;
+    if ($("homeMatrixTypes")) $("homeMatrixTypes").textContent = matrixTypeCount;
 
     const box = $("homeRecentActivity");
     if (!box) return;
@@ -1316,11 +1430,13 @@
   /* ---------- Search + initialisation ---------- */
   $("bufferSearch")?.addEventListener("input",renderInventory);
   $("globalSearch")?.addEventListener("input",event=>{
-    const term=event.target.value;
-    if (!term) return;
-    goToView("buffers");
-    setTimeout(()=>{ if($("bufferSearch")){ $("bufferSearch").value=term; renderInventory(); } },0);
+    const term=event.target.value.trim(); if(!term) return; const q=term.toLowerCase();
+    const matrixHit=matrixSamples.some(x=>[x.species,x.matrix_type,x.strain,x.sex,x.storage_location,x.unit].map(matrixValue).join(" ").toLowerCase().includes(q));
+    const bufferHit=reagents.some(r=>bufferMatchesSearch(r,term));
+    if(matrixHit && !bufferHit){ goToView("matrices"); setTimeout(()=>{if($("matrixSearch")){ $("matrixSearch").value=term; renderMatrices();}},0); }
+    else { goToView("buffers"); setTimeout(()=>{if($("bufferSearch")){ $("bufferSearch").value=term; renderInventory();}},0); }
   });
+  ["matrixSearch","matrixSpeciesFilter","matrixTypeFilter","matrixStrainFilter"].forEach(id=>$(id)?.addEventListener(id==="matrixSearch"?"input":"change",renderMatrices));
   document.addEventListener("keydown",e=>{ if ((e.metaKey||e.ctrlKey) && e.key.toLowerCase()==="k") { e.preventDefault(); $("globalSearch")?.focus(); } });
 
   updateAdminForm();
