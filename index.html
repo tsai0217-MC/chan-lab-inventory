@@ -1,1047 +1,1347 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chan's lab | Reagent Inventory</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chan's Lab | Inventory System</title>
+  <meta name="description" content="Chan's Lab inventory tracking system for buffers and biological matrices." />
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+
   <style>
     * { box-sizing: border-box; }
+
     :root {
-      --blue:#4b91d1; --blue-dark:#3277b9; --blue-light:#e8f5ff;
-      --blue-border:#cfe3f4; --text:#29435d; --muted:#6e8296;
-      --background:#f4faff; --danger:#b64040; --success:#30823a;
+      --ink: #16324b;
+      --ink-soft: #536b7f;
+      --muted: #7a8d9d;
+      --blue: #397fd0;
+      --blue-dark: #245d9e;
+      --blue-pale: #eaf5ff;
+      --green: #3d9c75;
+      --green-pale: #edf8f2;
+      --peach: #e99a62;
+      --peach-pale: #fff4ea;
+      --purple: #7f6ad8;
+      --purple-pale: #f3f0ff;
+      --red: #cf5757;
+      --red-pale: #fff1f0;
+      --yellow: #d89218;
+      --yellow-pale: #fff8e8;
+      --line: #dbe7ef;
+      --panel: rgba(255,255,255,.95);
+      --bg: #f4f8fb;
+      --shadow: 0 10px 32px rgba(43, 83, 118, .09);
+      --sidebar: 220px;
     }
+
+    html { scroll-behavior: smooth; }
     body {
-      margin:0; font-family:Arial,Helvetica,sans-serif; color:var(--text);
-      background:linear-gradient(180deg,#e3f3ff 0,#f4faff 320px,#f8fcff 100%);
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 80% 0%, rgba(203,231,248,.55), transparent 34%),
+        linear-gradient(180deg,#f8fbfd,#f3f8fb 52%,#f8fbfd);
     }
-    .hero {
-      text-align:center; padding:45px 20px 35px;
-      background:linear-gradient(135deg,#d7efff,#eff9ff,#dcefff);
-      border-bottom:1px solid var(--blue-border);
+
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+
+    /* ---------- Layout ---------- */
+    .app-shell { min-height: 100vh; }
+    .sidebar {
+      position: fixed;
+      inset: 0 auto 0 0;
+      width: var(--sidebar);
+      background: rgba(255,255,255,.88);
+      backdrop-filter: blur(16px);
+      border-right: 1px solid var(--line);
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      z-index: 50;
     }
-    .lab-icon { font-size:44px; }
-    .hero h1 {
-      margin:6px 0; font-family:Georgia,"Times New Roman",serif;
-      font-size:60px; font-weight:600; color:var(--blue-dark);
+
+    .brand {
+      display: flex;
+      gap: 11px;
+      align-items: center;
+      padding: 2px 8px 24px;
     }
-    .hero p { margin:10px 0 0; font-size:14px; font-weight:600; letter-spacing:7px; color:var(--blue-dark); }
-    .container { width:calc(100% - 40px); max-width:1200px; margin:auto; padding-bottom:50px; }
-    .database-bar { display:flex; align-items:center; gap:15px; margin:25px 0; }
-    .two-column { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 13px;
+      display: grid;
+      place-items: center;
+      font-size: 25px;
+      background: linear-gradient(145deg,#e6f4ff,#f6fbff);
+      border: 1px solid #cfe4f3;
+      box-shadow: 0 7px 18px rgba(69,132,183,.12);
+    }
+    .brand strong {
+      display: block;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 20px;
+      line-height: 1.1;
+    }
+    .brand small { color: var(--muted); line-height: 1.25; }
+
+    .nav-group { display: grid; gap: 5px; }
+    .nav-divider { height: 1px; background: var(--line); margin: 16px 8px; }
+    .nav-btn {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: #365369;
+      border-radius: 11px;
+      padding: 11px 12px;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      text-align: left;
+      transition: .15s ease;
+    }
+    .nav-btn:hover { background: #f1f7fb; color: var(--blue-dark); }
+    .nav-btn.active {
+      background: linear-gradient(90deg,#e8f3fc,#edf7fd);
+      color: var(--blue-dark);
+      font-weight: 700;
+      box-shadow: inset 3px 0 0 var(--blue);
+    }
+    .nav-icon { width: 22px; text-align: center; font-size: 18px; }
+
+    .sidebar-foot {
+      margin-top: auto;
+      padding: 18px 10px 2px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .ssf-sketch {
+      height: 86px;
+      margin-bottom: 8px;
+      opacity: .68;
+      position: relative;
+      overflow: hidden;
+      border-radius: 15px;
+      background: linear-gradient(180deg,#edf7fd,#f7fbfd);
+    }
+    .ssf-sketch::before {
+      content: "";
+      position: absolute;
+      left: 12px; right: 12px; bottom: 14px;
+      height: 30px;
+      background:
+        linear-gradient(90deg, transparent 0 3%, #a9c3d5 3% 7%, transparent 7% 10%, #9db9cd 10% 18%, transparent 18% 22%, #adc5d5 22% 30%, transparent 30% 34%, #8eafc5 34% 44%, transparent 44% 48%, #aac3d3 48% 56%, transparent 56% 61%, #91b2c7 61% 70%, transparent 70% 75%, #a7bfd0 75% 84%, transparent 84%);
+      clip-path: polygon(0 100%,0 55%,8% 55%,8% 35%,18% 35%,18% 65%,28% 65%,28% 25%,38% 25%,38% 52%,47% 52%,47% 18%,59% 18%,59% 64%,70% 64%,70% 39%,82% 39%,82% 57%,92% 57%,92% 30%,100% 30%,100% 100%);
+    }
+    .ssf-sketch::after {
+      content: "SSF • Oyster Point";
+      position: absolute;
+      left: 12px;
+      top: 12px;
+      color: #62839a;
+      font-weight: 700;
+      letter-spacing: .07em;
+      font-size: 10px;
+    }
+
+    .main {
+      margin-left: var(--sidebar);
+      min-height: 100vh;
+      padding: 20px 28px 44px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+    .global-search {
+      flex: 1;
+      max-width: 620px;
+      position: relative;
+    }
+    .global-search input {
+      width: 100%;
+      min-height: 43px;
+      border-radius: 22px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.92);
+      padding: 0 44px 0 42px;
+      outline: none;
+      color: var(--ink);
+      box-shadow: 0 5px 18px rgba(40,72,101,.05);
+    }
+    .global-search .search-icon { position: absolute; left: 16px; top: 10px; color: #71899c; }
+    .global-search .keycap {
+      position: absolute; right: 12px; top: 9px;
+      background: #eef3f6; color: #708391; border-radius: 7px; padding: 3px 7px; font-size: 11px;
+    }
+    .connection-pill {
+      margin-left: auto;
+      white-space: nowrap;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid #cfe0ea;
+      background: #fff;
+    }
+    .connection-pill.loading { color: #587789; background: #f5f9fb; }
+    .connection-pill.success { color: #317552; background: #eef9f2; border-color: #c7e6d3; }
+    .connection-pill.error { color: #a53a3a; background: #fff1f0; border-color: #f0c2bf; }
+    .refresh-btn {
+      border: 1px solid #cce0ee;
+      color: var(--blue-dark);
+      background: #fff;
+      border-radius: 12px;
+      padding: 9px 13px;
+      font-weight: 700;
+    }
+
+    .view { display: none; animation: fade .16s ease; }
+    .view.active { display: block; }
+    @keyframes fade { from { opacity: .55; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+    /* ---------- Shared cards ---------- */
     .card {
-      margin-bottom:24px; padding:28px; background:rgba(255,255,255,.96);
-      border:1px solid #d7e8f5; border-radius:20px; box-shadow:0 8px 25px rgba(77,128,169,.10);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
     }
-    .card h2 {
-      margin:0 0 24px; font-family:Georgia,"Times New Roman",serif;
-      color:var(--blue-dark); font-size:27px;
+    .card-pad { padding: 22px; }
+    .section-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
     }
-    .form-row { margin-bottom:18px; }
-    label { display:block; margin-bottom:7px; font-weight:600; }
-    input, select {
-      width:100%; min-height:44px; padding:10px 12px; border:1px solid #bfd9ed;
-      border-radius:9px; background:#fff; color:var(--text); font-size:15px; outline:none;
+    .section-title {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: #1f4f7e;
+      font-size: 29px;
+      line-height: 1.15;
     }
-    input:focus, select:focus { border-color:#69a9df; box-shadow:0 0 0 3px rgba(105,169,223,.15); }
-    .sub-panel { margin:18px 0; padding:18px; border:1px solid #d6e8f6; border-radius:12px; background:#f7fbff; }
-    .helper { margin-top:0; color:var(--muted); font-size:14px; line-height:1.55; }
-    button {
-      padding:11px 20px; border:0; border-radius:9px;
-      background:linear-gradient(135deg,#68afe9,#438fd1); color:#fff;
-      font-size:15px; font-weight:600; cursor:pointer; box-shadow:0 4px 10px rgba(67,143,209,.18); transition:.15s;
-    }
-    button:hover { transform:translateY(-1px); box-shadow:0 7px 15px rgba(67,143,209,.25); }
-    button:disabled { opacity:.55; cursor:not-allowed; transform:none; }
-    .secondary-btn { background:#edf6ff; color:var(--blue-dark); border:1px solid #c5def1; box-shadow:none; }
-    .danger-btn { background:linear-gradient(135deg,#df7777,#bf5454); }
-    #databaseStatus { margin:0; padding:8px 14px; border-radius:20px; font-weight:600; font-size:14px; }
-    #databaseStatus.loading { background:#eef6fc; color:#507592; }
-    #databaseStatus.success { background:#edf9ee; color:var(--success); border:1px solid #c4e6c7; }
-    #databaseStatus.error { background:#fff0f0; color:var(--danger); border:1px solid #f1c9c9; }
-    .table-wrapper { width:100%; overflow-x:auto; }
-    table {
-      width:100%; border-collapse:separate; border-spacing:0; overflow:hidden;
-      border:1px solid var(--blue-border); border-radius:14px; background:#fff;
-    }
-    th {
-      padding:14px; background:linear-gradient(180deg,#eaf6ff,#ddecf9); color:#285f96;
-      font-size:13px; border-right:1px solid #ccdfed; border-bottom:1px solid #ccdfed;
-      text-align:center; white-space:nowrap;
-    }
-    td { padding:14px; text-align:center; border-right:1px solid #e2edf5; border-bottom:1px solid #e2edf5; }
-    th:last-child,td:last-child { border-right:none; }
-    tbody tr:last-child td { border-bottom:none; }
-    tbody tr:hover td { background:#f5fbff; }
-    .rules-title { cursor:pointer; font-size:22px; font-weight:700; color:var(--blue-dark); }
-    .rules-content { margin-top:22px; line-height:1.65; }
-    .rules-content h3 { margin:24px 0 8px; color:var(--blue-dark); }
-    .rules-content ul { padding-left:22px; }
-    .rules-content li { margin-bottom:8px; }
-    .rules-content a { color:var(--blue-dark); font-weight:600; }
+    .eyebrow { color: #7890a2; font-size: 11px; letter-spacing: .18em; text-transform: uppercase; font-weight: 800; }
+    .helper, .muted { color: var(--ink-soft); font-size: 13px; line-height: 1.6; }
 
-    /* Expandable inventory */
-    .inventory-main-row { cursor:pointer; }
-    .inventory-main-row td:first-child { font-weight:700; color:var(--blue-dark); }
-    .expand-icon { display:inline-block; width:20px; transition:transform .15s ease; }
-    .inventory-main-row.expanded .expand-icon { transform:rotate(90deg); }
-    .lot-detail-row td { background:#fbfdff !important; padding:0; }
-    .lot-panel { padding:20px; text-align:left; }
-    .lot-panel h4 { margin:0 0 12px; color:var(--blue-dark); }
-    .lot-table { margin-top:10px; }
-    .lot-table td, .lot-table th { padding:10px 12px; }
-    .qty-controls { display:inline-flex; align-items:center; gap:8px; }
-    .arrow-btn {
-      width:34px; height:34px; padding:0; border-radius:8px; box-shadow:none;
-      display:inline-flex; align-items:center; justify-content:center; font-size:16px;
+    .primary-btn, .secondary-btn, .soft-btn, .danger-btn {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-weight: 750;
+      transition: .15s ease;
     }
-    .arrow-btn.up { background:#edf6ff; color:var(--blue-dark); border:1px solid #c5def1; }
-    .arrow-btn.down { background:linear-gradient(135deg,#68afe9,#438fd1); }
-    .projected-count { min-width:78px; display:inline-block; font-weight:700; }
-    .pending-change { color:#b06f00; font-size:12px; font-weight:700; margin-left:6px; }
-    .quick-submit { display:flex; flex-wrap:wrap; align-items:end; gap:12px; margin-top:16px; }
-    .quick-submit .name-field { flex:1; min-width:220px; }
-    .quick-submit .name-field input { margin-top:6px; }
-    .lot-expiring { color:#b06f00; font-weight:700; }
-    .lot-expired { color:var(--danger); font-weight:700; }
-    .summary-note { color:var(--muted); font-size:13px; margin-top:8px; }
-    .admin-badge {
-      display:inline-block; margin-left:8px; padding:3px 8px; border-radius:12px;
-      background:#edf6ff; color:var(--blue-dark); font-size:12px; vertical-align:middle;
-    }
+    .primary-btn { background: linear-gradient(135deg,#66aee8,#397fc7); color: #fff; box-shadow: 0 7px 15px rgba(57,127,199,.18); }
+    .primary-btn:hover { transform: translateY(-1px); }
+    .secondary-btn { background: #eef6fc; color: var(--blue-dark); border: 1px solid #cce0ef; }
+    .soft-btn { background: #fff; color: #48677d; border: 1px solid var(--line); }
+    .danger-btn { background: #fff1f0; color: #b74242; border: 1px solid #efc2be; }
 
-    /* Expiration status */
-    .expired-date { color:#c62828; font-weight:800; }
-    .expiring-date { color:#b77900; font-weight:800; }
-    .safe-date { color:#2e7d32; font-weight:700; }
-    .expiration-alert {
-      display:inline-flex; align-items:center; justify-content:center;
-      width:20px; height:20px; margin-right:7px; border-radius:50%;
-      color:#fff; font-size:14px; font-weight:900; line-height:1;
-      vertical-align:middle;
+    input, select, textarea {
+      width: 100%;
+      min-height: 43px;
+      border: 1px solid #cddfea;
+      border-radius: 10px;
+      background: #fff;
+      color: var(--ink);
+      padding: 9px 11px;
+      outline: none;
     }
+    textarea { min-height: 140px; resize: vertical; }
+    input:focus, select:focus, textarea:focus { border-color: #79aee0; box-shadow: 0 0 0 3px rgba(79,145,205,.12); }
+    label { display: block; margin: 0 0 7px; font-size: 13px; font-weight: 750; color: #304e65; }
+    .form-row { margin-bottom: 15px; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; }
+    .sub-panel { padding: 16px; border-radius: 13px; background: #f8fbfd; border: 1px solid #ddeaf1; margin: 15px 0; }
+
+    .table-wrapper { width: 100%; overflow-x: auto; }
+    table { width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid var(--line); border-radius: 13px; overflow: hidden; background: #fff; }
+    th { background: #eaf4fb; color: #2d6798; font-size: 11px; letter-spacing: .03em; padding: 12px; text-align: center; border-right: 1px solid #d6e5ef; border-bottom: 1px solid #d6e5ef; white-space: nowrap; }
+    td { padding: 12px; text-align: center; border-right: 1px solid #e3edf3; border-bottom: 1px solid #e3edf3; font-size: 13px; }
+    th:last-child, td:last-child { border-right: 0; }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:hover > td { background: #f8fcff; }
+
+    /* ---------- Home ---------- */
+    .home-grid { display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: 18px; }
+    .hero {
+      min-height: 270px;
+      border-radius: 19px;
+      overflow: hidden;
+      position: relative;
+      color: #fff;
+      background:
+        linear-gradient(90deg,rgba(14,52,82,.88) 0%,rgba(25,77,114,.70) 43%,rgba(27,75,102,.23) 100%),
+        url("https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Oyster_Point%2C_South_San_Francisco_ferry_terminal_%2839183690920%29.jpg/1024px-Oyster_Point%2C_South_San_Francisco_ferry_terminal_%2839183690920%29.jpg") center/cover;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(180,211,229,.7);
+      padding: 38px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .hero::after {
+      content: "";
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg,transparent 58%,rgba(11,42,65,.22));
+      pointer-events: none;
+    }
+    .hero > * { position: relative; z-index: 1; }
+    .hero .kicker { letter-spacing: .28em; font-size: 11px; font-weight: 800; text-transform: uppercase; opacity: .9; }
+    .hero h1 { margin: 10px 0 5px; font-family: Georgia,"Times New Roman",serif; font-size: clamp(40px,6vw,66px); line-height: .98; font-weight: 600; }
+    .hero h1 span { color: #cce9ff; }
+    .hero .sub { font-size: 20px; margin-top: 6px; }
+    .hero .quote { margin-top: 28px; font-family: Georgia,"Times New Roman",serif; font-style: italic; color: #e8f4fb; max-width: 330px; }
+
+    .right-stack { display: grid; gap: 14px; }
+    .date-card { padding: 18px; }
+    .date-card .bigdate { font-family: Georgia,"Times New Roman",serif; font-size: 22px; font-weight: 700; }
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .stat { padding: 13px; border-radius: 13px; border: 1px solid var(--line); background: #f9fcfe; }
+    .stat.blue { background: #f1f7ff; }
+    .stat.red { background: #fff4f1; }
+    .stat.orange { background: #fff8ed; }
+    .stat.green { background: #f1f9f4; }
+    .stat b { display: block; font-size: 23px; margin-top: 5px; }
+    .stat span { font-size: 11px; color: var(--ink-soft); }
+
+    .choose-head { margin: 22px 0 12px; display: flex; align-items: baseline; gap: 12px; }
+    .choose-head h2 { margin: 0; font-family: Georgia,"Times New Roman",serif; font-size: 31px; color: #193c5b; }
+    .choose-head span { color: var(--muted); font-size: 13px; }
+    .category-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; }
+    .category-card {
+      min-height: 330px;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+    }
+    .category-visual { height: 150px; position: relative; overflow: hidden; }
+    .category-visual.buffer { background: linear-gradient(145deg,#c9e6fa,#eaf6ff); }
+    .category-visual.matrix { background: linear-gradient(145deg,#dff2e8,#f0fbf5); }
+    .category-visual.advanced { background: linear-gradient(145deg,#fee5d0,#fff4e9); }
+    .category-visual .emoji-art { position: absolute; right: 25px; bottom: 12px; font-size: 92px; filter: drop-shadow(0 12px 10px rgba(34,67,92,.12)); }
+    .category-visual .number { position: absolute; left: 20px; top: 17px; font-family: Georgia,"Times New Roman",serif; font-size: 14px; color: #486f91; }
+    .category-body { padding: 20px; flex: 1; display: flex; flex-direction: column; }
+    .category-body h3 { margin: 0 0 7px; font-family: Georgia,"Times New Roman",serif; font-size: 27px; color: #153b5a; }
+    .category-body p { margin: 0; color: var(--ink-soft); line-height: 1.5; font-size: 13px; }
+    .category-links { margin-top: auto; padding-top: 15px; border-top: 1px solid rgba(152,181,201,.4); display: grid; gap: 7px; font-size: 12px; color: #306fa8; }
+    .round-arrow { margin-top: 15px; width: 42px; height: 42px; border-radius: 50%; border: 0; display: grid; place-items: center; font-size: 20px; color: #17486d; background: rgba(255,255,255,.75); box-shadow: 0 5px 14px rgba(44,91,128,.10); }
+
+    .future-card {
+      margin-top: 18px;
+      padding: 18px 24px;
+      min-height: 145px;
+      display: grid;
+      grid-template-columns: 180px 1fr auto;
+      align-items: center;
+      gap: 18px;
+      background: linear-gradient(100deg,#edf5ff,#f5f4ff 50%,#eef8ff);
+    }
+    .cute-scientist { width: 170px; height: 118px; }
+    .future-card h3 { font-family: Georgia,"Times New Roman",serif; color: #2e5683; font-size: 24px; margin: 0 0 6px; }
+    .future-card p { margin: 0; color: #536c82; font-size: 13px; line-height: 1.55; }
+    .future-list { display: grid; gap: 7px; color: #57728a; font-size: 12px; }
+
+    .recent-list { display: grid; gap: 13px; }
+    .activity { display: grid; grid-template-columns: 9px 1fr auto; align-items: start; gap: 9px; font-size: 12px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #50a981; margin-top: 5px; }
+    .dot.warn { background: #ef8b39; }
+    .dot.bad { background: #dd6a6a; }
+    .activity time { color: #8899a6; font-size: 11px; white-space: nowrap; }
+
+    /* ---------- Buffer page ---------- */
+    .page-banner {
+      padding: 24px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      background: linear-gradient(120deg,#fafdff,#eef7fd);
+    }
+    .page-banner h1 { margin: 0; font-family: Georgia,"Times New Roman",serif; color: #214e79; font-size: 38px; }
+    .page-banner p { margin: 6px 0 0; color: #60798c; font-size: 13px; }
+    .mini-stats { display: grid; grid-template-columns: repeat(4,minmax(110px,1fr)); gap: 10px; margin-bottom: 16px; }
+    .mini-stat { padding: 14px; background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 5px 17px rgba(46,86,117,.05); }
+    .mini-stat small { color: var(--muted); }
+    .mini-stat b { display: block; margin-top: 3px; font-size: 22px; }
+
+    .low-stock-banner { display: none; margin-bottom: 16px; padding: 15px 18px; border-radius: 14px; border: 1px solid #efaaa4; background: var(--red-pale); color: #9d3838; }
+    .low-stock-banner.show { display: block; }
+    .low-stock-banner h3 { margin: 0 0 6px; font-size: 17px; }
+    .low-stock-banner ul { margin: 7px 0 0; padding-left: 20px; font-size: 13px; }
+
+    .buffer-layout { display: grid; grid-template-columns: minmax(0,1fr) 330px; gap: 16px; }
+    .buffer-tools { display: flex; flex-wrap: wrap; gap: 9px; margin-bottom: 14px; }
+    .buffer-tools .searchbox { flex: 1; min-width: 230px; }
+
+    .inventory-main-row { cursor: pointer; }
+    .inventory-main-row td:first-child { color: var(--blue-dark); font-weight: 800; }
+    .expand-icon { display: inline-block; width: 18px; transition: transform .15s ease; }
+    .inventory-main-row.expanded .expand-icon { transform: rotate(90deg); }
+    .lot-detail-row td { background: #fbfdff !important; padding: 0; }
+    .lot-panel { padding: 17px; text-align: left; }
+    .lot-panel h4 { margin: 0 0 11px; color: var(--blue-dark); }
+    .lot-table td, .lot-table th { padding: 10px 12px; }
+    .qty-controls { display: inline-flex; align-items: center; gap: 7px; }
+    .arrow-btn { width: 34px; height: 34px; padding: 0; border-radius: 8px; box-shadow: none; display: inline-flex; align-items: center; justify-content: center; font-size: 15px; border: 0; }
+    .arrow-btn.up { background: #edf6ff; color: var(--blue-dark); border: 1px solid #c5def1; }
+    .arrow-btn.down { background: linear-gradient(135deg,#68afe9,#438fd1); color: #fff; }
+    .projected-count { min-width: 70px; display: inline-block; font-weight: 800; }
+    .pending-change { color: #b06f00; font-size: 11px; font-weight: 800; margin-left: 5px; }
+    .quick-submit { display: flex; gap: 9px; flex-wrap: wrap; margin-top: 14px; }
+    .summary-note { color: var(--muted); font-size: 11px; margin: 8px 0 0; }
+
+    .expired-date { color: #c62828; font-weight: 850; }
+    .expiring-date { color: #b77900; font-weight: 850; }
+    .safe-date { color: #2e7d32; font-weight: 750; }
+    .expiration-alert { display: inline-flex; align-items:center; justify-content:center; width:18px; height:18px; margin-right:5px; border-radius:50%; color:#fff; font-size:12px; font-weight:900; vertical-align:middle; }
     .expiration-alert.red { background:#d93025; }
     .expiration-alert.yellow { background:#e6a700; }
 
-    /* Low-stock alert */
-    .low-stock-banner {
-      display:none; margin-bottom:24px; padding:18px 20px; border-radius:16px;
-      background:#fff3f2; border:2px solid #e57373; color:#9f2f2f;
-      box-shadow:0 6px 18px rgba(190,70,70,.10);
-    }
-    .low-stock-banner.show { display:block; }
-    .low-stock-banner h3 { margin:0 0 10px; font-size:20px; }
-    .low-stock-banner ul { margin:8px 0 0; padding-left:22px; }
-    .low-stock-banner li { margin:6px 0; }
+    .alarm-grid { display: grid; gap: 8px; max-height: 430px; overflow: auto; padding-right: 3px; }
+    .alarm-item { display:flex; align-items:center; gap:9px; padding:10px 11px; border:1px solid #dce9f1; border-radius:10px; background:#fbfdff; }
+    .alarm-item input { width: auto; min-height: auto; }
+    .alarm-item label { margin: 0; cursor: pointer; font-weight: 650; font-size: 12px; }
 
-    /* Alarm admin */
-    .alarm-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:10px; margin:14px 0 18px; }
-    .alarm-item {
-      display:flex; align-items:center; gap:10px; padding:12px 14px;
-      border:1px solid #d6e8f6; border-radius:10px; background:#f9fcff;
-    }
-    .alarm-item input { width:auto; min-height:auto; }
-    .alarm-item label { margin:0; cursor:pointer; font-weight:600; }
+    details.guide { margin-top: 16px; }
+    details.guide summary { list-style: none; cursor: pointer; font-weight: 800; color: #2e6492; }
+    details.guide summary::-webkit-details-marker { display: none; }
+    .guide-body { margin-top: 14px; font-size: 13px; line-height: 1.6; color: #4d677c; }
+    .guide-body h4 { color: #2c6697; margin: 17px 0 5px; }
 
-    /* Messages */
-    textarea {
-      width:100%; min-height:130px; resize:vertical; padding:12px;
-      border:1px solid #bfd9ed; border-radius:9px; background:#fff;
-      color:var(--text); font:inherit; outline:none;
+    /* ---------- Matrices ---------- */
+    .matrix-filter-grid { display: grid; grid-template-columns: 1.2fr repeat(3, .8fr); gap: 10px; margin-bottom: 14px; }
+    .matrix-empty {
+      min-height: 380px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 30px;
+      border: 1px dashed #bdd6e6;
+      border-radius: 16px;
+      background: linear-gradient(180deg,#fbfeff,#f7fbfd);
     }
-    textarea:focus { border-color:#69a9df; box-shadow:0 0 0 3px rgba(105,169,223,.15); }
-    .message-success { display:none; margin-top:12px; color:var(--success); font-weight:700; }
+    .matrix-empty .icon { font-size: 58px; }
+    .matrix-empty h3 { margin: 10px 0 5px; font-family: Georgia,"Times New Roman",serif; color: #2b5d86; font-size: 27px; }
+    .classification { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 14px; }
+    .chip { border-radius: 999px; padding: 7px 10px; background: #eef7fb; border: 1px solid #d3e8f2; color: #52738b; font-size: 12px; }
+
+    /* ---------- Advanced ---------- */
+    .advanced-intro { margin-bottom: 16px; }
+    .advanced-grid { display: grid; grid-template-columns: .86fr 1.14fr; gap: 16px; align-items: start; }
+    .action-menu { display: grid; gap: 9px; margin-bottom: 16px; }
+    .action-card { display: flex; align-items: center; gap: 11px; border: 1px solid var(--line); border-radius: 12px; padding: 12px; background: #fff; }
+    .action-card .ico { width: 38px; height: 38px; border-radius: 10px; display:grid;place-items:center;background:#edf6fd;font-size:19px; }
+    .action-card b { display:block;font-size:13px; }
+    .action-card small { color:var(--muted);font-size:11px; }
+    .advanced-label { display: inline-block; border-radius: 999px; padding: 4px 8px; background: var(--purple-pale); color: #6e5abc; font-size: 10px; font-weight: 800; margin-left: 6px; vertical-align: middle; }
+
+    /* ---------- Logs / Usage ---------- */
+    .usage-grid { display: grid; grid-template-columns: minmax(0,1fr) 290px; gap: 14px; align-items: stretch; }
+    .chart-wrap { min-height: 360px; position: relative; }
+    .usage-filters { padding: 15px; background: #f9fcfe; border: 1px solid #dce9f1; border-radius: 13px; }
+    .usage-filters h4 { margin: 0 0 9px; color: #2b5e87; }
+    .usage-checks { display: grid; gap: 7px; max-height: 255px; overflow: auto; }
+    .usage-check { display: flex; gap: 8px; align-items: start; font-size: 12px; }
+    .usage-check input { width: auto; min-height: auto; margin-top: 2px; }
+    .range-row { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+    .range-btn { border:1px solid #cfe0eb; background:#fff; color:#55748a; border-radius:8px; padding:6px 9px; font-size:11px; font-weight:700; }
+    .range-btn.active { background:#438fd1;color:white;border-color:#438fd1; }
+
+    /* ---------- Messages / orders ---------- */
+    .message-success { display:none; margin-top:10px; color:#317d59; font-weight:750; font-size:13px; }
     .message-success.show { display:block; }
 
-    @media (max-width:800px) {
-      .hero h1 { font-size:43px; }
-      .hero p { font-size:11px; letter-spacing:4px; }
-      .two-column { grid-template-columns:1fr; }
-      .database-bar { flex-direction:column; align-items:flex-start; }
-      .card { padding:20px; }
+    /* ---------- Footer ---------- */
+    .site-footer { margin-top: 24px; padding-top: 18px; color: #8093a1; font-size: 10px; display:flex;justify-content:space-between;gap:14px;border-top:1px solid #e1ebf1; }
+    .site-footer a { color:#66839a; }
+
+    @media (max-width: 1100px) {
+      :root { --sidebar: 190px; }
+      .home-grid, .buffer-layout, .usage-grid, .advanced-grid { grid-template-columns: 1fr; }
+      .category-grid { grid-template-columns: 1fr 1fr; }
+      .right-stack { grid-template-columns: 1fr 1fr; }
+      .future-card { grid-template-columns: 150px 1fr; }
+      .future-list { display:none; }
+    }
+
+    @media (max-width: 760px) {
+      .sidebar { position: static; width: auto; height: auto; padding: 12px; }
+      .brand { padding-bottom: 12px; }
+      .nav-group { display:flex;overflow:auto;gap:6px; }
+      .nav-btn { min-width:max-content; }
+      .nav-divider,.sidebar-foot { display:none; }
+      .main { margin-left:0; padding:14px; }
+      .topbar { flex-wrap:wrap; }
+      .connection-pill { margin-left:0; }
+      .category-grid,.right-stack,.form-grid,.matrix-filter-grid,.mini-stats { grid-template-columns:1fr; }
+      .future-card { grid-template-columns:1fr; text-align:center; }
+      .cute-scientist { margin:auto; }
+      .hero { padding:28px 22px; min-height:240px; }
+      .page-banner { align-items:flex-start;flex-direction:column; }
     }
   </style>
 </head>
 <body>
-  <header class="hero">
-    <div class="lab-icon">⚗️</div>
-    <h1>Chan's lab</h1>
-    <p>LAB REAGENT INVENTORY</p>
-  </header>
-
-  <main class="container">
-    <div class="database-bar">
-      <button onclick="refreshAll()">↻ Refresh Database</button>
-      <p id="databaseStatus" class="loading">Connecting to database...</p>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">⚗️</div>
+      <div>
+        <strong>Chan’s Lab</strong>
+        <small>BCP · Genentech<br>South San Francisco</small>
+      </div>
     </div>
 
-    <section class="card">
-      <details>
-        <summary class="rules-title">📘 Buffer Tracking System — Guidelines & Instructions</summary>
-        <div class="rules-content">
-          <h3>Authorized Use</h3>
-          <p>This system is intended exclusively for members of the Genentech BCP Chan Lab. Unauthorized access or misuse is prohibited.</p>
+    <nav class="nav-group">
+      <button class="nav-btn" data-view="home"><span class="nav-icon">⌂</span>Home</button>
+      <button class="nav-btn" data-view="buffers"><span class="nav-icon">⚗</span>Common Buffers</button>
+      <button class="nav-btn" data-view="matrices"><span class="nav-icon">🧬</span>Biological Matrices</button>
+      <button class="nav-btn" data-view="advanced"><span class="nav-icon">⚙</span>Advanced Update</button>
+    </nav>
 
-          <h3>What This System Tracks</h3>
-          <p>This system tracks <strong>unopened bottles only</strong>. Each reagent may contain multiple lots, and every lot has its own lot number, expiration date, and unopened bottle count.</p>
+    <div class="nav-divider"></div>
 
-          <h3>Storage & Registration</h3>
-          <p>Buffers are currently stored in three locations:</p>
-          <ul>
-            <li><strong>422255</strong> — Chan Lab 4°C Refrigerator</li>
-            <li><strong>423328</strong> — Cold Room</li>
-            <li><strong>423360</strong> — Hallway Refrigerator (Delivery Location: 48-1150)</li>
-          </ul>
-          <p>Newly delivered buffers are initially stored in the <strong>423360 hallway refrigerator</strong> and are not yet considered registered inventory. When a buffer is transferred to 422255 or 423328, it must be added as <strong>New Stock</strong>.</p>
+    <nav class="nav-group">
+      <button class="nav-btn" data-view="logs"><span class="nav-icon">▤</span>Logs</button>
+      <button class="nav-btn" data-view="orders"><span class="nav-icon">🛒</span>Standing Orders</button>
+      <button class="nav-btn" data-view="messages"><span class="nav-icon">💬</span>Messages</button>
+    </nav>
 
-          <h3>Opening a Buffer</h3>
-          <p>In <strong>Inventory Overview</strong>, click the reagent to expand its lots. Find the exact lot you are opening and press <strong>▼ once for each bottle opened</strong>. The change is only pending until <strong>Submit Changes</strong> is pressed. Use <strong>▲</strong> only to undo a pending ▼ before submission.</p>
+    <div class="sidebar-foot">
+      <div class="ssf-sketch"></div>
+      <strong>Chan’s Lab · BCP</strong><br>
+      Better organized inventory.<br>Better science.
+    </div>
+  </aside>
 
-          <h3>Expiration Status</h3>
-          <p>An expired lot is shown in red with a red <strong>!</strong>. A lot expiring within 14 days is shown in yellow/orange with a yellow <strong>!</strong>. Lots expiring more than 14 days later are shown in green.</p>
-
-          <h3>Adding New Stock</h3>
-          <p>New Stock must include a <strong>Lot Number</strong> and <strong>Expiration Date</strong>. If the same reagent and lot already exist, the new quantity is added to that existing lot instead of creating a duplicate lot.</p>
-
-          <h3>Low Stock Alarm</h3>
-          <p>Selected reagents may have a low-stock / email alarm enabled. <strong>Only reagents with this alarm enabled</strong> can appear in the Low Stock Alert. When an enabled reagent has fewer than <strong>3 unopened bottles</strong> across all lots, a warning is displayed above the Inventory Overview. The same enabled/disabled setting will also control email notification once email delivery is connected.</p>
-
-          <h3>Messages to the Buffer Tracking Admin</h3>
-          <p>Use the message section near the bottom of the page to contact the Buffer Tracking System administrator about expected high usage, standing-order changes, or other inventory concerns.</p>
-
-          <h3>Standing Orders</h3>
-          <p>Because MPRS may not reflect the most up-to-date ordering information, please refer to the <strong>Standing Orders</strong> section for current recurring order requests.</p>
-
-          <p><a href="https://docs.google.com/document/d/1XeZ6hnZZOhQK9nhVFFWYXR_sG2U6snsb2Fi2Nkaw_-I/edit?usp=sharing" target="_blank">View Full Buffer Tracking System Documentation</a></p>
-        </div>
-      </details>
-    </section>
-
-    <!-- LOW STOCK ALERT -->
-    <section id="lowStockBanner" class="low-stock-banner">
-      <h3>⚠ Low Stock Alert</h3>
-      <div>The following alarm-enabled buffers have fewer than 3 unopened bottles remaining:</div>
-      <ul id="lowStockList"></ul>
-    </section>
-
-    <!-- INVENTORY OVERVIEW -->
-    <section class="card">
-      <h2>📋 1. Inventory Overview</h2>
-      <p class="helper">Click a reagent to view all lots. Use ▼ for each bottle opened. Use ▲ only to undo a pending ▼ before submitting.</p>
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>CODE</th>
-              <th>NAME</th>
-              <th>UNOPENED BOTTLES</th>
-              <th>NEAREST EXPIRATION</th>
-              <th>LAST UPDATED</th>
-            </tr>
-          </thead>
-          <tbody id="inventoryTable"></tbody>
-        </table>
+  <main class="main">
+    <div class="topbar">
+      <div class="global-search">
+        <span class="search-icon">⌕</span>
+        <input id="globalSearch" type="search" placeholder="Search buffers, lots, or inventory..." />
+        <span class="keycap">⌘ K</span>
       </div>
-    </section>
-
-    <!-- STANDING ORDERS -->
-    <section class="card">
-      <h2>📦 Standing Orders</h2>
-      <p class="section-description">Current recurring buffer order requests.</p>
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>ORDER NUMBER</th>
-              <th>BUFFER CODE</th>
-              <th>BUFFER NAME</th>
-              <th>REQUESTOR</th>
-              <th>DELIVERY VOLUME (L)</th>
-              <th>START DATE</th>
-              <th>END DATE</th>
-              <th>FREQUENCY</th>
-            </tr>
-          </thead>
-          <tbody id="standingOrderTable"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <div class="two-column">
-      <!-- ADD REAGENT -->
-      <section class="card">
-        <h2>＋ Add New Reagent <span class="admin-badge">Admin / advanced</span></h2>
-        <p class="helper">This creates the reagent master record only. Add physical inventory through New Stock so a lot number and expiration date can be recorded.</p>
-        <div class="form-row">
-          <label for="newCode">Code</label>
-          <input id="newCode" type="text" placeholder="Example: A4806">
-        </div>
-        <div class="form-row">
-          <label for="newName">Name</label>
-          <input id="newName" type="text" placeholder="Example: LM BCP Block Buffer">
-        </div>
-        <div class="form-row">
-          <label for="newReagentUser">Added By</label>
-          <input id="newReagentUser" type="text" placeholder="Your name">
-        </div>
-        <div class="form-row">
-          <label for="newReagentNote">Note</label>
-          <input id="newReagentNote" type="text" placeholder="Optional">
-        </div>
-        <button onclick="addNewReagent()">⚗ Add Reagent</button>
-      </section>
-
-      <!-- ADMIN UPDATE -->
-      <section class="card">
-        <h2>✎ 3. Update Inventory <span class="admin-badge">Admin / advanced</span></h2>
-        <div class="form-row">
-          <label for="reagentSelect">Reagent</label>
-          <select id="reagentSelect" onchange="updateLotDropdown(); updateAdminForm();"></select>
-        </div>
-        <div class="form-row">
-          <label for="actionSelect">Action</label>
-          <select id="actionSelect" onchange="updateAdminForm()">
-            <option value="NEW_STOCK">New Stock</option>
-            <option value="EXPIRED">Expired / Discard Unopened Bottle</option>
-            <option value="PHYSICAL_COUNT">Physical Count</option>
-            <option value="INPUT_ERROR">Input Error Correction</option>
-          </select>
-        </div>
-
-        <div id="newStockArea" class="sub-panel">
-          <div class="form-row">
-            <label for="newLotNumber">Lot Number</label>
-            <input id="newLotNumber" type="text" placeholder="Example: 1123">
-          </div>
-          <div class="form-row">
-            <label for="newExpirationDate">Expiration Date</label>
-            <input id="newExpirationDate" type="date">
-          </div>
-          <div class="form-row">
-            <label for="newStockQuantity">Quantity</label>
-            <select id="newStockQuantity" class="number-select" data-min="1"></select>
-          </div>
-        </div>
-
-        <div id="existingLotArea" class="sub-panel" style="display:none;">
-          <div class="form-row">
-            <label for="lotSelect">Lot</label>
-            <select id="lotSelect"></select>
-          </div>
-        </div>
-
-        <div id="lotQuantityArea" class="sub-panel" style="display:none;">
-          <label for="adminQuantity">Quantity</label>
-          <select id="adminQuantity" class="number-select" data-min="1"></select>
-        </div>
-
-        <div id="physicalCountArea" class="sub-panel" style="display:none;">
-          <p class="helper">Enter the actual unopened bottle count for the selected lot.</p>
-          <label for="actualUnopened">Actual Unopened Bottles</label>
-          <input id="actualUnopened" type="number" min="0" step="1" placeholder="Enter actual count">
-        </div>
-
-        <div id="errorCorrectionArea" class="sub-panel" style="display:none;">
-          <p class="helper">Enter the correct unopened bottle count for the selected lot.</p>
-          <label for="correctUnopened">Correct Unopened Bottles</label>
-          <input id="correctUnopened" type="number" min="0" step="1" placeholder="Enter correct count">
-        </div>
-
-        <div class="form-row">
-          <label for="updatedBy">Updated By</label>
-          <input id="updatedBy" type="text" placeholder="Your name">
-        </div>
-        <div class="form-row">
-          <label for="note">Note</label>
-          <input id="note" type="text" placeholder="Optional">
-        </div>
-        <button id="updateButton" onclick="updateInventory()">✓ Confirm Update</button>
-      </section>
+      <button class="refresh-btn" onclick="refreshAll()">↻ Refresh</button>
+      <div id="databaseStatus" class="connection-pill loading">Connecting to database…</div>
     </div>
 
-    <!-- LOW STOCK ALARM SETTINGS -->
-    <section class="card">
-      <h2>🔔 Low Stock / Email Alarm Settings</h2>
-      <p class="helper">Choose which buffers should have low-stock monitoring enabled. Only enabled buffers will appear in the Low Stock Alert when their total unopened quantity across all lots is below 3 bottles. The same setting will also control email notifications once email delivery is connected.</p>
-      <div id="alarmSettingsList" class="alarm-grid"></div>
-      <button type="button" onclick="saveAlarmSettings()">💾 Save Alarm Settings</button>
+    <!-- HOME -->
+    <section id="view-home" class="view">
+      <div class="home-grid">
+        <div>
+          <section class="hero">
+            <div class="kicker">Chan’s Lab · Biochemical & Cellular Pharmacology</div>
+            <h1>Inventory <span>System</span></h1>
+            <div class="sub">Genentech · South San Francisco</div>
+            <div class="quote">“Small details make a big difference.”</div>
+          </section>
+
+          <div class="choose-head"><h2>Choose a section</h2><span>Manage buffers, matrices, and inventory with ease.</span></div>
+
+          <div class="category-grid">
+            <article class="category-card">
+              <div class="category-visual buffer"><span class="number">01</span><span class="emoji-art">🧪</span></div>
+              <div class="category-body">
+                <h3>Common<br>Buffers</h3>
+                <p>Track routine buffers, lots, expiration dates, low-stock alerts, and day-to-day usage.</p>
+                <button class="round-arrow" onclick="goToView('buffers')">→</button>
+                <div class="category-links"><span>› Inventory Overview</span><span>› Lot-level usage</span><span>› Low Stock Alarms</span></div>
+              </div>
+            </article>
+
+            <article class="category-card">
+              <div class="category-visual matrix"><span class="number">02</span><span class="emoji-art">🧫</span></div>
+              <div class="category-body">
+                <h3>Biological<br>Matrices</h3>
+                <p>Designed for serum, plasma, tissue and other samples using Species → Matrix → Strain filters.</p>
+                <button class="round-arrow" onclick="goToView('matrices')">→</button>
+                <div class="category-links"><span>› Search & Filter</span><span>› Future sample inventory</span><span>› Lot details</span></div>
+              </div>
+            </article>
+
+            <article class="category-card">
+              <div class="category-visual advanced"><span class="number">03</span><span class="emoji-art">⚙️</span></div>
+              <div class="category-body">
+                <h3>Advanced<br>Update</h3>
+                <p>Add stock, discard expired material, perform physical counts, or correct inventory records.</p>
+                <button class="round-arrow" onclick="goToView('advanced')">→</button>
+                <div class="category-links"><span>› New Stock</span><span>› Expired / Discard</span><span>› Physical Count / Correction</span></div>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <aside class="right-stack">
+          <section class="card date-card">
+            <div class="bigdate" id="todayDate">—</div>
+            <div class="muted" style="margin-top:5px">Hope you have a productive day.</div>
+          </section>
+
+          <section class="card card-pad">
+            <div class="section-head" style="margin-bottom:12px"><div><div class="eyebrow">Live overview</div><h3 style="margin:3px 0 0">Quick Stats</h3></div></div>
+            <div class="stats-grid">
+              <div class="stat blue"><span>Total buffer types</span><b id="homeStatBuffers">0</b></div>
+              <div class="stat red"><span>Alarm-enabled low stock</span><b id="homeStatLow">0</b></div>
+              <div class="stat orange"><span>Expiring ≤14 days</span><b id="homeStatExpiring">0</b></div>
+              <div class="stat green"><span>Total unopened bottles</span><b id="homeStatQty">0</b></div>
+            </div>
+          </section>
+
+          <section class="card card-pad">
+            <div class="section-head" style="margin-bottom:12px"><div><div class="eyebrow">Latest</div><h3 style="margin:3px 0 0">Recent Activities</h3></div><button class="soft-btn" onclick="goToView('logs')">View All</button></div>
+            <div id="homeRecentActivity" class="recent-list"><div class="muted">Loading activity…</div></div>
+          </section>
+        </aside>
+      </div>
+
+      <section class="future-card card">
+        <svg class="cute-scientist" viewBox="0 0 180 120" aria-hidden="true">
+          <ellipse cx="75" cy="112" rx="58" ry="7" fill="#dfeaf4"/>
+          <circle cx="62" cy="42" r="23" fill="#ffd8bd"/>
+          <path d="M39 38c5-23 43-28 51-3 2 7 0 14-2 18-4-11-12-16-23-15-8 1-14 5-20 11-4-3-7-7-6-11z" fill="#2f3c4b"/>
+          <circle cx="55" cy="44" r="2" fill="#34475a"/><circle cx="70" cy="44" r="2" fill="#34475a"/>
+          <path d="M56 55c5 4 10 4 15 0" stroke="#bd705f" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <path d="M40 68c11-11 34-11 45 0l8 41H32z" fill="#fff" stroke="#a7bfd2" stroke-width="2"/>
+          <path d="M59 68v42M51 81h17" stroke="#9fb8ca" stroke-width="2"/>
+          <path d="M97 48h33l-6 14h-21z" fill="#cceeff" stroke="#6aa5cf" stroke-width="2"/>
+          <path d="M110 62l-10 43h35l-11-43" fill="#bce9f7" stroke="#5f9ec6" stroke-width="2"/>
+          <path d="M103 89c9-4 19 5 29 0v14h-31z" fill="#63c4db" opacity=".8"/>
+          <path d="M83 76c9 5 15 11 21 20" stroke="#ffd8bd" stroke-width="9" stroke-linecap="round"/>
+          <path d="M103 77c-2-8 3-14 7-20" stroke="#ffd8bd" stroke-width="8" stroke-linecap="round"/>
+          <circle cx="137" cy="31" r="20" fill="#fff" stroke="#bad2e3"/>
+          <path d="M127 29c5-5 16-5 21 0M129 35h16" stroke="#5c7d96" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div>
+          <h3>More Features Coming Soon!</h3>
+          <p><strong>“MORE FUNCTION WILL COMING IN FUTURE!”</strong><br>Chan’s Lab Inventory System is designed to grow with the team. Biological matrices, richer analytics, and additional inventory categories can be added without changing the one-page structure.</p>
+        </div>
+        <div class="future-list"><span>✓ More inventory categories</span><span>✓ Better usage analytics</span><span>✓ A more useful lab workflow</span></div>
+      </section>
     </section>
 
-    <!-- MESSAGE TO ADMIN -->
-    <section class="card">
-      <h2>💬 Message the Buffer Tracking Admin</h2>
-      <p class="helper">Use this form for expected high buffer usage, requests to adjust a standing order, or other inventory-related messages.</p>
-      <div class="form-row">
-        <label for="messageName">Your Name</label>
-        <input id="messageName" type="text" placeholder="Your name">
+    <!-- COMMON BUFFERS -->
+    <section id="view-buffers" class="view">
+      <section class="page-banner card">
+        <div><div class="eyebrow">Routine inventory</div><h1>⚗ Common Buffers</h1><p>Track unopened inventory, individual lots, expiration dates, and low-stock status.</p></div>
+        <button class="primary-btn" onclick="goToView('advanced')">＋ Advanced Update</button>
+      </section>
+
+      <div class="mini-stats">
+        <div class="mini-stat"><small>Total buffer types</small><b id="bufferStatTypes">0</b></div>
+        <div class="mini-stat"><small>Total unopened</small><b id="bufferStatQty">0</b></div>
+        <div class="mini-stat"><small>Alarm-enabled low stock</small><b id="bufferStatLow">0</b></div>
+        <div class="mini-stat"><small>Expiring ≤14 days</small><b id="bufferStatExp">0</b></div>
       </div>
-      <div class="form-row">
-        <label for="messageReagent">Buffer / Reagent</label>
-        <select id="messageReagent"></select>
+
+      <section id="lowStockBanner" class="low-stock-banner">
+        <h3>⚠ Low Stock Alert</h3>
+        <div>The following alarm-enabled buffers have fewer than 3 unopened bottles remaining:</div>
+        <ul id="lowStockList"></ul>
+      </section>
+
+      <div class="buffer-layout">
+        <section class="card card-pad">
+          <div class="section-head"><div><div class="eyebrow">Routine use</div><h2 class="section-title">Inventory Overview</h2><p class="helper">Click a reagent to view all lots. Use ▼ for each bottle opened. Use ▲ only to undo a pending ▼ before submitting.</p></div></div>
+
+          <div class="buffer-tools">
+            <div class="searchbox"><input id="bufferSearch" type="search" placeholder="Search buffer name, code, or lot number…"></div>
+            <button class="soft-btn" onclick="document.getElementById('bufferSearch').value=''; renderInventory();">Clear</button>
+          </div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead><tr><th>CODE</th><th>NAME</th><th>UNOPENED BOTTLES</th><th>NEAREST EXPIRATION</th><th>LAST UPDATED</th></tr></thead>
+              <tbody id="inventoryTable"></tbody>
+            </table>
+          </div>
+
+          <details class="guide card-pad" style="padding:16px 0 0">
+            <summary>▸ Buffer Tracking System — Guidelines & Instructions</summary>
+            <div class="guide-body">
+              <h4>What This System Tracks</h4><p>This system tracks <strong>unopened bottles only</strong>. Each reagent may contain multiple lots, each with its own lot number, expiration date, and unopened bottle count.</p>
+              <h4>Opening a Buffer</h4><p>Expand the reagent, identify the exact physical lot, and press <strong>▼ once per bottle opened</strong>. The change remains pending until <strong>Submit Changes</strong> is pressed. Use ▲ only to undo a pending ▼.</p>
+              <h4>Storage & Registration</h4><p>Material delivered to the 423360 hallway refrigerator is not automatically registered inventory. Add it as New Stock when transferred into a registered storage location.</p>
+              <h4>Expiration Status</h4><p>Expired = red !, within 14 days = yellow !, more than 14 days = green.</p>
+              <p><a href="https://docs.google.com/document/d/1XeZ6hnZZOhQK9nhVFFWYXR_sG2U6snsb2Fi2Nkaw_-I/edit?usp=sharing" target="_blank" rel="noopener">View Full Buffer Tracking System Documentation ↗</a></p>
+            </div>
+          </details>
+        </section>
+
+        <aside class="card card-pad">
+          <div class="section-head"><div><div class="eyebrow">Optional monitoring</div><h2 class="section-title" style="font-size:24px">🔔 Low Stock / Email Alarm</h2><p class="helper">Only enabled buffers appear in the low-stock alert when total unopened quantity across all lots is below 3 bottles.</p></div></div>
+          <div id="alarmSettingsList" class="alarm-grid"></div>
+          <button class="primary-btn" style="margin-top:12px;width:100%" type="button" onclick="saveAlarmSettings()">💾 Save Alarm Settings</button>
+        </aside>
       </div>
-      <div class="form-row">
-        <label for="messageText">Message</label>
-        <textarea id="messageText" placeholder="Example: We expect to use a large amount of A4806 next week. Please consider increasing the standing order."></textarea>
+    </section>
+
+    <!-- BIOLOGICAL MATRICES -->
+    <section id="view-matrices" class="view">
+      <section class="page-banner card">
+        <div><div class="eyebrow">Future inventory module</div><h1>🧬 Biological Matrices</h1><p>Designed for samples such as serum, plasma, tissue, cell lysate and related biological materials.</p></div>
+      </section>
+
+      <section class="card card-pad">
+        <div class="section-head"><div><h2 class="section-title">Search & Filter</h2><p class="helper">Instead of repeatedly expanding nested categories, matrices will use cascading filters.</p></div></div>
+        <div class="matrix-filter-grid">
+          <input type="search" placeholder="Search sample name, code, lot number…" disabled>
+          <select disabled><option>Species — All</option><option>Mouse</option><option>Cyno</option></select>
+          <select disabled><option>Matrix — All</option><option>Serum</option><option>Plasma</option></select>
+          <select disabled><option>Strain — All</option><option>CD-1</option><option>BALB/c</option><option>C57BL/6</option></select>
+        </div>
+
+        <div class="matrix-empty">
+          <div>
+            <div class="icon">🧫</div>
+            <h3>Matrix inventory is ready for the next database module.</h3>
+            <p class="helper" style="max-width:620px;margin:0 auto">The UI structure is already prepared. When the new Supabase tables are added, this page can populate Species → Matrix → Strain filters without changing the rest of the website.</p>
+            <div class="classification"><span class="chip">Species: Mouse / Cyno / …</span><span class="chip">Matrix: Serum / Plasma / …</span><span class="chip">Strain: CD-1 / BALB/c / C57BL/6 / …</span><span class="chip">Lot + Expiration + Quantity</span></div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- ADVANCED UPDATE -->
+    <section id="view-advanced" class="view">
+      <section class="page-banner card advanced-intro">
+        <div><div class="eyebrow">For detailed inventory operations</div><h1>⚙ Advanced Update</h1><p>Routine bottle opening stays in Common Buffers using the arrow controls. Use this page for receiving stock, discarding material, physical counts, and corrections.</p></div>
+      </section>
+
+      <div class="advanced-grid">
+        <div>
+          <section class="card card-pad">
+            <div class="section-head"><div><h2 class="section-title" style="font-size:24px">Available Functions <span class="advanced-label">ADVANCED</span></h2></div></div>
+            <div class="action-menu">
+              <div class="action-card"><div class="ico">📦</div><div><b>New Stock</b><small>Register newly transferred inventory with lot and expiration date.</small></div></div>
+              <div class="action-card"><div class="ico">🗑️</div><div><b>Expired / Discard</b><small>Remove unopened bottles that are expired or discarded.</small></div></div>
+              <div class="action-card"><div class="ico">📋</div><div><b>Physical Count</b><small>Set inventory to the actual observed unopened count.</small></div></div>
+              <div class="action-card"><div class="ico">✎</div><div><b>Input Error Correction</b><small>Correct a known inventory entry mistake.</small></div></div>
+            </div>
+            <p class="helper">All quantity fields on this page use direct number entry. New Stock and Expired / Discard require at least 1. Physical Count and Input Error Correction may be 0.</p>
+          </section>
+
+          <section class="card card-pad" style="margin-top:16px">
+            <div class="section-head"><div><div class="eyebrow">Master record</div><h2 class="section-title" style="font-size:24px">＋ Add New Reagent</h2><p class="helper">Creates a reagent master record only. Add physical inventory through New Stock.</p></div></div>
+            <div class="form-row"><label for="newCode">Code</label><input id="newCode" type="text" placeholder="Example: A4806"></div>
+            <div class="form-row"><label for="newName">Name</label><input id="newName" type="text" placeholder="Example: LM BCP Block Buffer"></div>
+            <div class="form-row"><label for="newReagentUser">Added By</label><input id="newReagentUser" type="text" placeholder="Your name"></div>
+            <div class="form-row"><label for="newReagentNote">Note</label><input id="newReagentNote" type="text" placeholder="Optional"></div>
+            <button class="primary-btn" onclick="addNewReagent()">⚗ Add Reagent</button>
+          </section>
+        </div>
+
+        <section class="card card-pad">
+          <div class="section-head"><div><div class="eyebrow">Inventory adjustment</div><h2 class="section-title">Update Inventory</h2></div></div>
+          <div class="form-row"><label for="reagentSelect">Reagent</label><select id="reagentSelect" onchange="updateLotDropdown(); updateAdminForm();"></select></div>
+          <div class="form-row"><label for="actionSelect">Action</label><select id="actionSelect" onchange="updateAdminForm()"><option value="NEW_STOCK">New Stock</option><option value="EXPIRED">Expired / Discard Unopened Bottle</option><option value="PHYSICAL_COUNT">Physical Count</option><option value="INPUT_ERROR">Input Error Correction</option></select></div>
+
+          <div id="newStockArea" class="sub-panel">
+            <div class="form-grid">
+              <div class="form-row"><label for="newLotNumber">Lot Number</label><input id="newLotNumber" type="text" placeholder="Example: 1123"></div>
+              <div class="form-row"><label for="newExpirationDate">Expiration Date</label><input id="newExpirationDate" type="date"></div>
+            </div>
+            <div class="form-row"><label for="newStockQuantity">Quantity</label><input id="newStockQuantity" type="number" min="1" step="1" value="1" placeholder="Enter quantity"></div>
+          </div>
+
+          <div id="existingLotArea" class="sub-panel" style="display:none"><div class="form-row"><label for="lotSelect">Lot</label><select id="lotSelect"></select></div></div>
+
+          <div id="lotQuantityArea" class="sub-panel" style="display:none"><label for="adminQuantity">Quantity to Remove</label><input id="adminQuantity" type="number" min="1" step="1" value="1" placeholder="Enter quantity"></div>
+
+          <div id="physicalCountArea" class="sub-panel" style="display:none"><p class="helper">Enter the actual unopened bottle count for the selected lot.</p><label for="actualUnopened">Actual Unopened Bottles</label><input id="actualUnopened" type="number" min="0" step="1" placeholder="Enter actual count"></div>
+
+          <div id="errorCorrectionArea" class="sub-panel" style="display:none"><p class="helper">Enter the correct final unopened bottle count for the selected lot.</p><label for="correctUnopened">Correct Unopened Bottles</label><input id="correctUnopened" type="number" min="0" step="1" placeholder="Enter correct count"></div>
+
+          <div class="form-grid">
+            <div class="form-row"><label for="updatedBy">Updated By</label><input id="updatedBy" type="text" placeholder="Your name"></div>
+            <div class="form-row"><label for="note">Note</label><input id="note" type="text" placeholder="Optional"></div>
+          </div>
+          <button id="updateButton" class="primary-btn" onclick="updateInventory()">✓ Confirm Update</button>
+        </section>
       </div>
-      <button type="button" onclick="sendAdminMessage()">✉ Send Message</button>
-      <div id="messageSuccess" class="message-success">Message sent successfully.</div>
     </section>
 
     <!-- LOGS -->
-    <section class="card">
-      <h2>📄 2. Logs</h2>
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>TIME</th><th>USER</th><th>CODE</th><th>NAME</th><th>ACTION</th><th>CHANGE</th><th>NOTE</th>
-            </tr>
-          </thead>
-          <tbody id="logTable"></tbody>
-        </table>
-      </div>
+    <section id="view-logs" class="view">
+      <section class="page-banner card"><div><div class="eyebrow">Analytics + history</div><h1>▥ Logs & Usage</h1><p>Understand how routine buffer usage changes over time, then review the detailed activity history.</p></div></section>
+
+      <section class="card card-pad" style="margin-bottom:16px">
+        <div class="section-head"><div><div class="eyebrow">OPEN_BOTTLE events only</div><h2 class="section-title">📊 Buffer Usage Trend</h2><p class="helper">Expired, discarded, physical count, input correction, and new stock events are excluded from this chart.</p></div></div>
+        <div class="usage-grid">
+          <div>
+            <div class="range-row"><button class="range-btn" data-range="3">3M</button><button class="range-btn active" data-range="6">6M</button><button class="range-btn" data-range="12">1Y</button><button class="range-btn" data-range="all">All</button></div>
+            <div class="chart-wrap"><canvas id="usageChart"></canvas></div>
+          </div>
+          <aside class="usage-filters"><h4>Select Buffers to Display</h4><div id="usageBufferList" class="usage-checks"></div><button class="secondary-btn" style="width:100%;margin-top:12px" onclick="selectAllUsageBuffers()">Select All</button></aside>
+        </div>
+      </section>
+
+      <section class="card card-pad">
+        <div class="section-head"><div><div class="eyebrow">Database history</div><h2 class="section-title">Inventory Logs</h2></div></div>
+        <div class="table-wrapper"><table><thead><tr><th>TIME</th><th>USER</th><th>CODE</th><th>NAME</th><th>ACTION</th><th>CHANGE</th><th>NOTE</th></tr></thead><tbody id="logTable"></tbody></table></div>
+      </section>
     </section>
+
+    <!-- STANDING ORDERS -->
+    <section id="view-orders" class="view">
+      <section class="page-banner card"><div><div class="eyebrow">Recurring supply reference</div><h1>🛒 Standing Orders</h1><p>Standing orders represent expected supply. They do not automatically increase registered inventory.</p></div></section>
+      <section class="card card-pad"><div class="table-wrapper"><table><thead><tr><th>ORDER NUMBER</th><th>BUFFER CODE</th><th>BUFFER NAME</th><th>REQUESTOR</th><th>DELIVERY VOLUME (L)</th><th>START DATE</th><th>END DATE</th><th>FREQUENCY</th></tr></thead><tbody id="standingOrderTable"></tbody></table></div></section>
+    </section>
+
+    <!-- MESSAGES -->
+    <section id="view-messages" class="view">
+      <section class="page-banner card"><div><div class="eyebrow">Inventory communication</div><h1>💬 Message the Buffer Tracking Admin</h1><p>Use this form for expected high usage, standing-order questions, or other inventory-related concerns.</p></div></section>
+      <section class="card card-pad" style="max-width:850px">
+        <div class="form-grid"><div class="form-row"><label for="messageName">Your Name</label><input id="messageName" type="text" placeholder="Your name"></div><div class="form-row"><label for="messageReagent">Buffer / Reagent</label><select id="messageReagent"></select></div></div>
+        <div class="form-row"><label for="messageText">Message</label><textarea id="messageText" placeholder="Example: We expect to use a large amount of A4806 next week. Please consider increasing the standing order."></textarea></div>
+        <button class="primary-btn" type="button" onclick="sendAdminMessage()">✉ Send Message</button>
+        <div id="messageSuccess" class="message-success">Message sent successfully.</div>
+      </section>
+    </section>
+
+    <footer class="site-footer">
+      <span>Chan’s Lab · BCP · South San Francisco</span>
+      <span>Hero image: Oyster Point, South San Francisco — mliu92, CC BY-SA 2.0 via Wikimedia Commons.</span>
+    </footer>
   </main>
+</div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-    const SUPABASE_URL = "https://qaicgoiaoowjjdqkoveq.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_xYsv4rwAtlBxNfC3u5H5bg_7GujK4fI";
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+<script>
+  const SUPABASE_URL = "https://qaicgoiaoowjjdqkoveq.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_xYsv4rwAtlBxNfC3u5H5bg_7GujK4fI";
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    let reagents = [];
-    let lots = [];
-    let logs = [];
-    let standingOrders = [];
-    const pendingUse = {}; // { lotId: numberOfBottlesToOpen }
-    const expandedReagents = new Set(); // remember which reagents are expanded across auto-refresh
+  let reagents = [];
+  let lots = [];
+  let logs = [];
+  let standingOrders = [];
+  const pendingUse = {};
+  const expandedReagents = new Set();
+  const usageSelected = new Set();
+  let usageRangeMonths = 6;
+  let usageChartInstance = null;
 
-    const $ = id => document.getElementById(id);
+  const $ = id => document.getElementById(id);
 
-    function escapeHTML(value) {
-      const div = document.createElement("div");
-      div.textContent = value == null ? "" : String(value);
-      return div.innerHTML;
-    }
+  function escapeHTML(value) {
+    const div = document.createElement("div");
+    div.textContent = value == null ? "" : String(value);
+    return div.innerHTML;
+  }
 
-    function formatTime(value) {
-      if (!value) return "";
-      return new Date(value).toLocaleString();
-    }
+  function formatTime(value) {
+    if (!value) return "";
+    return new Date(value).toLocaleString();
+  }
 
-    function formatDate(value) {
-      if (!value) return "";
-      const [y,m,d] = String(value).split("-");
-      return y && m && d ? `${m}/${d}/${y}` : value;
-    }
+  function formatDate(value) {
+    if (!value) return "";
+    const [y,m,d] = String(value).split("-");
+    return y && m && d ? `${m}/${d}/${y}` : value;
+  }
 
-    function setStatus(text, type="loading") {
-      const element = $("databaseStatus");
-      element.textContent = text;
-      element.className = type;
-    }
+  function setStatus(text, type="loading") {
+    const element = $("databaseStatus");
+    if (!element) return;
+    element.textContent = text;
+    element.className = `connection-pill ${type}`;
+  }
 
-    function createNumberOptions() {
-      document.querySelectorAll(".number-select").forEach(select => {
-        const min = Number(select.dataset.min);
-        select.innerHTML = "";
-        for (let i=min; i<=10; i++) {
-          const option = document.createElement("option");
-          option.value = i;
-          option.textContent = i;
-          select.appendChild(option);
-        }
-      });
-    }
+  /* ---------- SPA navigation ---------- */
+  const validViews = ["home","buffers","matrices","advanced","logs","orders","messages"];
 
-    function reagentLots(reagentId) {
-      return lots
-        .filter(l => Number(l.reagent_id) === Number(reagentId))
-        .sort((a,b) => String(a.expiration_date || "9999-12-31").localeCompare(String(b.expiration_date || "9999-12-31")));
-    }
+  function goToView(view) {
+    if (!validViews.includes(view)) view = "home";
+    if (location.hash !== `#${view}`) location.hash = view;
+    else renderActiveView(view);
+  }
 
-    function reagentSummary(reagentId) {
-      const rs = reagentLots(reagentId);
-      const total = rs.reduce((sum,l) => sum + Number(l.unopened_count || 0), 0);
-      const active = rs.filter(l => Number(l.unopened_count || 0) > 0 && l.expiration_date);
-      const nearest = active.length ? active[0].expiration_date : "";
-      const lastUpdated = rs.reduce((latest,l) => {
-        if (!l.last_updated) return latest;
-        if (!latest) return l.last_updated;
-        return new Date(l.last_updated) > new Date(latest) ? l.last_updated : latest;
-      }, "");
-      return { total, nearest, lastUpdated };
-    }
+  function renderActiveView(view) {
+    if (!validViews.includes(view)) view = "home";
+    document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+    $(`view-${view}`)?.classList.add("active");
+    document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.view === view));
+    if (view === "home") renderHome();
+    if (view === "buffers") { renderInventory(); renderLowStockAlerts(); renderAlarmSettings(); renderBufferStats(); }
+    if (view === "logs") { renderUsageFilters(); renderUsageChart(); renderLogs(); }
+    if (view === "orders") renderStandingOrders();
+    if (view === "messages") updateMessageReagentDropdown();
+    if (view === "advanced") { updateReagentDropdown(); updateAdminForm(); }
+  }
 
-    function isAlarmEnabled(reagent) {
-      return reagent?.alarm_enabled === true || reagent?.alarm_enabled === "true" || reagent?.alarm_enabled === 1;
-    }
+  window.addEventListener("hashchange", () => renderActiveView(location.hash.replace("#","") || "home"));
+  document.querySelectorAll(".nav-btn").forEach(btn => btn.addEventListener("click", () => goToView(btn.dataset.view)));
 
-    function renderLowStockAlerts() {
-      const low = reagents
-        .filter(r => isAlarmEnabled(r))
-        .map(r => ({reagent:r, total:reagentSummary(r.id).total}))
-        .filter(x => x.total < 3);
+  /* ---------- Data helpers ---------- */
+  function reagentLots(reagentId) {
+    return lots
+      .filter(l => Number(l.reagent_id) === Number(reagentId))
+      .sort((a,b) => String(a.expiration_date || "9999-12-31").localeCompare(String(b.expiration_date || "9999-12-31")));
+  }
 
-      const banner = $("lowStockBanner");
-      const list = $("lowStockList");
-      if (!banner || !list) return;
+  function reagentSummary(reagentId) {
+    const rs = reagentLots(reagentId);
+    const total = rs.reduce((sum,l) => sum + Number(l.unopened_count || 0), 0);
+    const active = rs.filter(l => Number(l.unopened_count || 0) > 0 && l.expiration_date);
+    const nearest = active.length ? active[0].expiration_date : "";
+    const lastUpdated = rs.reduce((latest,l) => {
+      if (!l.last_updated) return latest;
+      if (!latest) return l.last_updated;
+      return new Date(l.last_updated) > new Date(latest) ? l.last_updated : latest;
+    }, "");
+    return { total, nearest, lastUpdated };
+  }
 
-      list.innerHTML = low.map(x =>
-        `<li><strong>${escapeHTML(x.reagent.code)} — ${escapeHTML(x.reagent.name)}</strong>: ${x.total} unopened bottle${x.total === 1 ? "" : "s"} remaining</li>`
-      ).join("");
-      banner.classList.toggle("show", low.length > 0);
-    }
+  function isAlarmEnabled(reagent) {
+    return reagent?.alarm_enabled === true || reagent?.alarm_enabled === "true" || reagent?.alarm_enabled === 1;
+  }
 
-    function renderAlarmSettings() {
-      const box = $("alarmSettingsList");
-      if (!box) return;
-      if (!reagents.length) {
-        box.innerHTML = "<p>No reagents available.</p>";
-        return;
-      }
-      box.innerHTML = reagents.map(r => `
-        <div class="alarm-item">
-          <input type="checkbox" id="alarm-${r.id}" data-reagent-id="${r.id}" ${isAlarmEnabled(r) ? "checked" : ""}>
-          <label for="alarm-${r.id}">${escapeHTML(r.code)} — ${escapeHTML(r.name)}</label>
-        </div>`).join("");
-    }
+  function lowStockReagents() {
+    return reagents
+      .filter(isAlarmEnabled)
+      .map(r => ({ reagent:r, total:reagentSummary(r.id).total }))
+      .filter(x => x.total < 3);
+  }
 
-    function updateMessageReagentDropdown() {
-      const select = $("messageReagent");
-      if (!select) return;
-      const old = select.value;
-      select.innerHTML = '<option value="">General / No specific buffer</option>';
-      reagents.forEach(r => {
-        const opt = document.createElement("option");
-        opt.value = r.id;
-        opt.textContent = `${r.code} - ${r.name}`;
-        select.appendChild(opt);
-      });
-      if ([...select.options].some(o => o.value === old)) select.value = old;
-    }
+  function expirationStatus(dateString) {
+    if (!dateString) return {className:"", icon:"", days:null};
+    const today = new Date(); today.setHours(0,0,0,0);
+    const exp = new Date(dateString + "T00:00:00");
+    const days = Math.ceil((exp - today) / 86400000);
+    if (days < 0) return { className:"expired-date", icon:'<span class="expiration-alert red" title="Expired">!</span>', days };
+    if (days <= 14) return { className:"expiring-date", icon:'<span class="expiration-alert yellow" title="Expires within 14 days">!</span>', days };
+    return { className:"safe-date", icon:"", days };
+  }
 
-    async function loadReagents() {
-      const {data,error} = await supabaseClient.from("reagents").select("*").order("code",{ascending:true});
-      if (error) { console.error(error); setStatus("Database error: "+error.message,"error"); return false; }
-      reagents = data || [];
+  function expirationHTML(dateString) {
+    if (!dateString) return "—";
+    const status = expirationStatus(dateString);
+    return `<span class="${status.className}">${status.icon}${formatDate(dateString)}</span>`;
+  }
+
+  function expiringLotCount() {
+    return lots.filter(l => Number(l.unopened_count || 0) > 0 && l.expiration_date && expirationStatus(l.expiration_date).days <= 14).length;
+  }
+
+  /* ---------- Load ---------- */
+  async function loadReagents() {
+    const {data,error} = await supabaseClient.from("reagents").select("*").order("code",{ascending:true});
+    if (error) { console.error(error); setStatus("Database error: "+error.message,"error"); return false; }
+    reagents = data || [];
+    return true;
+  }
+
+  async function loadLots() {
+    const {data,error} = await supabaseClient.from("reagent_lots").select("*").order("expiration_date",{ascending:true});
+    if (error) { console.error(error); setStatus("Database error: "+error.message,"error"); return false; }
+    lots = data || [];
+    return true;
+  }
+
+  async function loadLogs() {
+    const {data,error} = await supabaseClient.from("logs").select("*").order("created_at",{ascending:false});
+    if (error) { console.error(error); setStatus("Database error: "+error.message,"error"); return false; }
+    logs = data || [];
+    return true;
+  }
+
+  async function loadStandingOrders() {
+    const {data,error} = await supabaseClient.from("standing_orders").select("*").order("start_date",{ascending:true});
+    if (error) { console.error(error); setStatus("Database error: "+error.message,"error"); return false; }
+    standingOrders = data || [];
+    return true;
+  }
+
+  async function refreshAll() {
+    setStatus("Loading database…","loading");
+    const ok = await Promise.all([loadReagents(),loadLots(),loadLogs(),loadStandingOrders()]);
+    if (ok.every(Boolean)) {
       updateReagentDropdown();
-      return true;
-    }
-
-    async function loadLots() {
-      const {data,error} = await supabaseClient.from("reagent_lots").select("*").order("expiration_date",{ascending:true});
-      if (error) { console.error(error); setStatus("Database error: "+error.message,"error"); return false; }
-      lots = data || [];
-      return true;
-    }
-
-    async function loadLogs() {
-      const {data,error} = await supabaseClient.from("logs").select("*").order("created_at",{ascending:false});
-      if (error) { console.error(error); setStatus("Database error: "+error.message,"error"); return false; }
-      logs = data || [];
-      renderLogs();
-      return true;
-    }
-
-    async function loadStandingOrders() {
-      const {data,error} = await supabaseClient.from("standing_orders").select("*").order("start_date",{ascending:true});
-      if (error) { console.error(error); setStatus("Database error: "+error.message,"error"); return false; }
-      standingOrders = data || [];
-      renderStandingOrders();
-      return true;
-    }
-
-    async function refreshAll() {
-      setStatus("Loading database...","loading");
-      const ok = await Promise.all([loadReagents(),loadLots(),loadLogs(),loadStandingOrders()]);
-      if (ok.every(Boolean)) {
-        renderInventory();
-        updateLotDropdown();
-        renderLowStockAlerts();
-        renderAlarmSettings();
-        updateMessageReagentDropdown();
-        setStatus("● Connected to Supabase","success");
-      }
-    }
-
-    function renderInventory() {
-      const table = $("inventoryTable");
-      table.innerHTML = "";
-      if (!reagents.length) {
-        table.innerHTML = `<tr><td colspan="5">No reagents in database.</td></tr>`;
-        return;
-      }
-
-      reagents.forEach(reagent => {
-        const summary = reagentSummary(reagent.id);
-        const main = document.createElement("tr");
-        main.className = "inventory-main-row";
-        main.dataset.reagentId = reagent.id;
-        main.innerHTML = `
-          <td><span class="expand-icon">▶</span>${escapeHTML(reagent.code)}</td>
-          <td>${escapeHTML(reagent.name)}</td>
-          <td>${summary.total}</td>
-          <td>${summary.nearest ? expirationHTML(summary.nearest) : "—"}</td>
-          <td>${summary.lastUpdated ? formatTime(summary.lastUpdated) : "—"}</td>
-        `;
-
-        const details = document.createElement("tr");
-        details.className = "lot-detail-row";
-        const isExpanded = expandedReagents.has(Number(reagent.id));
-        details.style.display = isExpanded ? "table-row" : "none";
-        main.classList.toggle("expanded", isExpanded);
-        details.innerHTML = `<td colspan="5"><div class="lot-panel" id="lotPanel-${reagent.id}"></div></td>`;
-
-        main.addEventListener("click", () => {
-          const reagentId = Number(reagent.id);
-
-          if (expandedReagents.has(reagentId)) {
-            expandedReagents.delete(reagentId);
-            details.style.display = "none";
-            main.classList.remove("expanded");
-          } else {
-            expandedReagents.add(reagentId);
-            details.style.display = "table-row";
-            main.classList.add("expanded");
-            renderLotPanel(reagent);
-          }
-        });
-
-        table.appendChild(main);
-        table.appendChild(details);
-
-        if (isExpanded) renderLotPanel(reagent);
-      });
-    }
-
-    function expirationStatus(dateString) {
-      if (!dateString) return {className:"", icon:"", days:null};
-      const today = new Date();
-      today.setHours(0,0,0,0);
-      const exp = new Date(dateString + "T00:00:00");
-      const days = Math.ceil((exp - today) / 86400000);
-
-      if (days < 0) {
-        return {
-          className:"expired-date",
-          icon:'<span class="expiration-alert red" title="Expired">!</span>',
-          days
-        };
-      }
-      if (days <= 14) {
-        return {
-          className:"expiring-date",
-          icon:'<span class="expiration-alert yellow" title="Expires within 14 days">!</span>',
-          days
-        };
-      }
-      return {className:"safe-date", icon:"", days};
-    }
-
-    function expirationHTML(dateString) {
-      if (!dateString) return "—";
-      const status = expirationStatus(dateString);
-      return `<span class="${status.className}">${status.icon}${formatDate(dateString)}</span>`;
-    }
-
-    function renderLotPanel(reagent) {
-      const panel = $(`lotPanel-${reagent.id}`);
-      const rs = reagentLots(reagent.id);
-      if (!rs.length) {
-        panel.innerHTML = `<h4>${escapeHTML(reagent.code)} — ${escapeHTML(reagent.name)}</h4><p>No lot records yet. Add stock through Update Inventory.</p>`;
-        return;
-      }
-
-      const rows = rs.map(lot => {
-        const original = Number(lot.unopened_count || 0);
-        const pending = Number(pendingUse[lot.id] || 0);
-        const projected = original - pending;
-        return `
-          <tr>
-            <td>${escapeHTML(lot.lot_number)}</td>
-            <td>${expirationHTML(lot.expiration_date)}</td>
-            <td><span class="projected-count" id="count-${lot.id}">${original}${pending ? ` → ${projected}` : ""}</span><span class="pending-change" id="pending-${lot.id}">${pending ? `(-${pending})` : ""}</span></td>
-            <td>
-              <span class="qty-controls">
-                <button class="arrow-btn up" type="button" onclick="event.stopPropagation(); adjustPending(${lot.id}, -1)">▲</button>
-                <button class="arrow-btn down" type="button" onclick="event.stopPropagation(); adjustPending(${lot.id}, 1)">▼</button>
-              </span>
-            </td>
-          </tr>`;
-      }).join("");
-
-      panel.innerHTML = `
-        <h4>${escapeHTML(reagent.code)} — ${escapeHTML(reagent.name)}</h4>
-        <div class="table-wrapper">
-          <table class="lot-table">
-            <thead><tr><th>LOT NUMBER</th><th>EXPIRATION DATE</th><th>UNOPENED BOTTLES</th><th>ADJUST</th></tr></thead>
-            <tbody>${rows}</tbody>
-          </table>
-        </div>
-        <div class="quick-submit">
-          <button type="button" onclick="event.stopPropagation(); submitQuickUse(${reagent.id})">✓ Submit Changes</button>
-          <button type="button" class="secondary-btn" onclick="event.stopPropagation(); clearPendingForReagent(${reagent.id})">Clear Pending</button>
-        </div>
-        <p class="summary-note">▼ = bottle opened / removed from unopened inventory. ▲ = undo a pending ▼ before submission.</p>
-      `;
-    }
-
-    function adjustPending(lotId, direction) {
-      const lot = lots.find(l => Number(l.id) === Number(lotId));
-      if (!lot) return;
-      const original = Number(lot.unopened_count || 0);
-      const current = Number(pendingUse[lotId] || 0);
-
-      if (direction > 0) {
-        if (current >= original) return alert("You cannot open more bottles than are currently unopened in this lot.");
-        pendingUse[lotId] = current + 1;
-      } else {
-        pendingUse[lotId] = Math.max(0, current - 1);
-      }
-      if (!pendingUse[lotId]) delete pendingUse[lotId];
-
-      const countEl = $(`count-${lotId}`);
-      const pendingEl = $(`pending-${lotId}`);
-      const pending = Number(pendingUse[lotId] || 0);
-      const projected = original - pending;
-      if (countEl) countEl.textContent = pending ? `${original} → ${projected}` : String(original);
-      if (pendingEl) pendingEl.textContent = pending ? `(-${pending})` : "";
-    }
-
-    function clearPendingForReagent(reagentId) {
-      reagentLots(reagentId).forEach(l => delete pendingUse[l.id]);
-      const reagent = reagents.find(r => Number(r.id) === Number(reagentId));
-      if (reagent) renderLotPanel(reagent);
-    }
-
-    async function submitQuickUse(reagentId) {
-      const reagent = reagents.find(r => Number(r.id) === Number(reagentId));
-      if (!reagent) return;
-      const user = "";
-
-      const changes = reagentLots(reagentId)
-        .map(l => ({lot:l, qty:Number(pendingUse[l.id] || 0)}))
-        .filter(x => x.qty > 0);
-      if (!changes.length) return alert("No pending changes to submit.");
-
-      const summary = changes.map(x => `Lot ${x.lot.lot_number}: -${x.qty}`).join("\n");
-      if (!confirm(`Reagent: ${reagent.code} - ${reagent.name}\n\n${summary}\n\nConfirm?`)) return;
-
-      for (const item of changes) {
-        const {data:fresh,error:fetchError} = await supabaseClient
-          .from("reagent_lots").select("*").eq("id",item.lot.id).single();
-        if (fetchError) return alert("Could not load latest lot inventory:\n"+fetchError.message);
-        const current = Number(fresh.unopened_count || 0);
-        if (item.qty > current) {
-          await refreshAll();
-          return alert(`Lot ${fresh.lot_number} changed since you opened the page. Please review the latest inventory and try again.`);
-        }
-        const newCount = current - item.qty;
-        const {error:updateError} = await supabaseClient
-          .from("reagent_lots")
-          .update({unopened_count:newCount,last_updated:new Date().toISOString()})
-          .eq("id",fresh.id);
-        if (updateError) return alert("Inventory update failed:\n"+updateError.message);
-
-        await createLog(
-          reagent,
-          user,
-          "OPEN_BOTTLE",
-          `Lot ${fresh.lot_number} | Unopened: ${current} → ${newCount}`,
-          `Expiration: ${fresh.expiration_date || "N/A"}`
-        );
-        delete pendingUse[fresh.id];
-      }
-
-      await refreshAll();
-      alert("Inventory updated successfully.");
-    }
-
-    function renderLogs() {
-      const table = $("logTable");
-      table.innerHTML = "";
-      if (!logs.length) {
-        table.innerHTML = `<tr><td colspan="7">No logs yet.</td></tr>`;
-        return;
-      }
-      logs.forEach(log => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${formatTime(log.created_at)}</td>
-          <td>${escapeHTML(log.user_name)}</td>
-          <td>${escapeHTML(log.code)}</td>
-          <td>${escapeHTML(log.name)}</td>
-          <td>${escapeHTML(log.action)}</td>
-          <td>${escapeHTML(log.change_text)}</td>
-          <td>${escapeHTML(log.note || "")}</td>`;
-        table.appendChild(row);
-      });
-    }
-
-    function renderStandingOrders() {
-      const table = $("standingOrderTable");
-      table.innerHTML = "";
-      if (!standingOrders.length) {
-        table.innerHTML = `<tr><td colspan="8">No standing orders.</td></tr>`;
-        return;
-      }
-      standingOrders.forEach(order => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${escapeHTML(order.order_number)}</td>
-          <td>${escapeHTML(order.buffer_code)}</td>
-          <td>${escapeHTML(order.buffer_name)}</td>
-          <td>${escapeHTML(order.requestor)}</td>
-          <td>${order.delivery_volume_l ?? ""}</td>
-          <td>${formatDate(order.start_date)}</td>
-          <td>${formatDate(order.end_date)}</td>
-          <td>${escapeHTML(order.frequency)}</td>`;
-        table.appendChild(row);
-      });
-    }
-
-    function updateReagentDropdown() {
-      const dropdown = $("reagentSelect");
-      const oldValue = dropdown.value;
-      dropdown.innerHTML = "";
-      if (!reagents.length) {
-        dropdown.innerHTML = `<option value="">No reagents available</option>`;
-        return;
-      }
-      reagents.forEach(reagent => {
-        const option = document.createElement("option");
-        option.value = reagent.id;
-        option.textContent = `${reagent.code} - ${reagent.name}`;
-        dropdown.appendChild(option);
-      });
-      if (reagents.some(r => String(r.id) === String(oldValue))) dropdown.value = oldValue;
-      updateLotDropdown();
-    }
-
-    function updateLotDropdown() {
-      const select = $("lotSelect");
-      if (!select) return;
-      const reagentId = Number($("reagentSelect").value);
-      const rs = reagentLots(reagentId);
-      select.innerHTML = "";
-      if (!rs.length) {
-        select.innerHTML = `<option value="">No lots available</option>`;
-        return;
-      }
-      rs.forEach(lot => {
-        const opt = document.createElement("option");
-        opt.value = lot.id;
-        opt.textContent = `${lot.lot_number} | Exp ${formatDate(lot.expiration_date)} | ${lot.unopened_count} unopened`;
-        select.appendChild(opt);
-      });
-    }
-
-    async function addNewReagent() {
-      const code = $("newCode").value.trim().toUpperCase();
-      const name = $("newName").value.trim();
-      const user = $("newReagentUser").value.trim();
-      const note = $("newReagentNote").value.trim();
-      if (!code || !name) return alert("Please enter both CODE and NAME.");
-      if (!user) return alert("Please enter your name.");
-      if (reagents.some(r => r.code.toUpperCase() === code)) return alert("This reagent code already exists.");
-
-      const {data,error} = await supabaseClient
-        .from("reagents")
-        .insert({code,name,last_updated:new Date().toISOString()})
-        .select().single();
-      if (error) return alert("Unable to add reagent:\n"+error.message);
-
-      await createLog(data,user,"NEW_REAGENT","Reagent master record created",note);
-      $("newCode").value = "";
-      $("newName").value = "";
-      $("newReagentNote").value = "";
-      await refreshAll();
-      alert("New reagent added successfully. Add stock through Update Inventory.");
-    }
-
-    function updateAdminForm() {
-      const action = $("actionSelect").value;
-      const newStock = action === "NEW_STOCK";
-      const existingLot = ["EXPIRED","PHYSICAL_COUNT","INPUT_ERROR"].includes(action);
-      $("newStockArea").style.display = newStock ? "block" : "none";
-      $("existingLotArea").style.display = existingLot ? "block" : "none";
-      $("lotQuantityArea").style.display = action === "EXPIRED" ? "block" : "none";
-      $("physicalCountArea").style.display = action === "PHYSICAL_COUNT" ? "block" : "none";
-      $("errorCorrectionArea").style.display = action === "INPUT_ERROR" ? "block" : "none";
-      if (existingLot) updateLotDropdown();
-    }
-
-    async function updateInventory() {
-      if (!reagents.length) return alert("There are no reagents in the database.");
-      const reagentId = Number($("reagentSelect").value);
-      const reagent = reagents.find(r => Number(r.id) === reagentId);
-      const action = $("actionSelect").value;
-      const user = $("updatedBy").value.trim();
-      const note = $("note").value.trim();
-      if (!reagent) return alert("Please select a reagent.");
-      if (!user) return alert("Please enter your name.");
-
-      if (action === "NEW_STOCK") {
-        const lotNumber = $("newLotNumber").value.trim();
-        const expirationDate = $("newExpirationDate").value;
-        const quantity = Number($("newStockQuantity").value);
-        if (!lotNumber) return alert("Please enter a lot number.");
-        if (!expirationDate) return alert("Please enter an expiration date.");
-
-        const existing = lots.find(l =>
-          Number(l.reagent_id) === reagentId &&
-          String(l.lot_number).trim().toUpperCase() === lotNumber.toUpperCase()
-        );
-
-        if (existing) {
-          if (existing.expiration_date && existing.expiration_date !== expirationDate) {
-            return alert(
-              `Lot ${lotNumber} already exists.\n\nExisting expiration: ${formatDate(existing.expiration_date)}\nEntered expiration: ${formatDate(expirationDate)}\n\nPlease verify the lot number or expiration date.`
-            );
-          }
-          const oldCount = Number(existing.unopened_count || 0);
-          const newCount = oldCount + quantity;
-          const {error} = await supabaseClient
-            .from("reagent_lots")
-            .update({unopened_count:newCount,expiration_date:expirationDate,last_updated:new Date().toISOString()})
-            .eq("id",existing.id);
-          if (error) return alert("Unable to update lot:\n"+error.message);
-          await createLog(reagent,user,"NEW_STOCK",`Lot ${lotNumber} | Unopened: ${oldCount} → ${newCount}`,note || `Expiration: ${expirationDate}`);
-        } else {
-          const {error} = await supabaseClient
-            .from("reagent_lots")
-            .insert({
-              reagent_id:reagentId,
-              lot_number:lotNumber,
-              expiration_date:expirationDate,
-              unopened_count:quantity,
-              last_updated:new Date().toISOString()
-            });
-          if (error) return alert("Unable to create lot:\n"+error.message);
-          await createLog(reagent,user,"NEW_STOCK",`Lot ${lotNumber} created | Unopened: 0 → ${quantity}`,note || `Expiration: ${expirationDate}`);
-        }
-      } else {
-        const lotId = Number($("lotSelect").value);
-        const {data:lot,error:lotError} = await supabaseClient.from("reagent_lots").select("*").eq("id",lotId).single();
-        if (lotError || !lot) return alert("Please select a valid lot.");
-        const oldCount = Number(lot.unopened_count || 0);
-        let newCount = oldCount;
-        let changeText = "";
-
-        if (action === "EXPIRED") {
-          const qty = Number($("adminQuantity").value);
-          if (qty > oldCount) return alert(`Not enough unopened bottles. Currently available: ${oldCount}`);
-          newCount = oldCount - qty;
-          changeText = `Lot ${lot.lot_number} | Unopened: ${oldCount} → ${newCount}`;
-        } else if (action === "PHYSICAL_COUNT") {
-          const raw = $("actualUnopened").value;
-          if (raw === "" || !Number.isInteger(Number(raw)) || Number(raw) < 0) return alert("Enter a valid non-negative whole number.");
-          newCount = Number(raw);
-          changeText = `Lot ${lot.lot_number} | Physical Count: ${oldCount} → ${newCount}`;
-        } else if (action === "INPUT_ERROR") {
-          const raw = $("correctUnopened").value;
-          if (raw === "" || !Number.isInteger(Number(raw)) || Number(raw) < 0) return alert("Enter a valid non-negative whole number.");
-          newCount = Number(raw);
-          changeText = `Lot ${lot.lot_number} | Correction: ${oldCount} → ${newCount}`;
-        }
-
-        if (!confirm(`Reagent: ${reagent.code} - ${reagent.name}\nLot: ${lot.lot_number}\nAction: ${action}\n${changeText}\nUpdated by: ${user}\n\nConfirm?`)) return;
-
-        const {error:updateError} = await supabaseClient
-          .from("reagent_lots")
-          .update({unopened_count:newCount,last_updated:new Date().toISOString()})
-          .eq("id",lot.id);
-        if (updateError) return alert("Inventory update failed:\n"+updateError.message);
-        await createLog(reagent,user,action,changeText,note || `Expiration: ${lot.expiration_date || "N/A"}`);
-      }
-
-      $("note").value = "";
-      await refreshAll();
-      alert("Inventory updated successfully.");
-    }
-
-    async function saveAlarmSettings() {
-      const boxes = [...document.querySelectorAll('#alarmSettingsList input[type="checkbox"]')];
-      if (!boxes.length) return alert("No reagents available.");
-
-      const updates = boxes.map(box => ({
-        id:Number(box.dataset.reagentId),
-        alarm_enabled:box.checked
-      }));
-
-      for (const item of updates) {
-        const {error} = await supabaseClient
-          .from("reagents")
-          .update({alarm_enabled:item.alarm_enabled})
-          .eq("id",item.id);
-
-        if (error) {
-          console.error(error);
-          return alert("Alarm settings could not be saved.\n\n" + error.message);
-        }
-
-        // Keep the browser copy in sync immediately so the banner follows
-        // the same alarm checkbox setting without waiting for another refresh cycle.
-        const reagent = reagents.find(r => Number(r.id) === Number(item.id));
-        if (reagent) reagent.alarm_enabled = item.alarm_enabled;
-      }
-
+      updateMessageReagentDropdown();
+      renderHome();
+      renderInventory();
       renderLowStockAlerts();
-      await refreshAll();
-      alert("Low-stock / email alarm settings saved.");
+      renderAlarmSettings();
+      renderBufferStats();
+      renderLogs();
+      renderStandingOrders();
+      renderUsageFilters();
+      renderUsageChart();
+      setStatus("● Connected to Supabase","success");
     }
+  }
 
-    async function sendAdminMessage() {
-      const senderName = $("messageName").value.trim();
-      const reagentIdRaw = $("messageReagent").value;
-      const message = $("messageText").value.trim();
+  /* ---------- Home ---------- */
+  function renderHome() {
+    const today = new Date();
+    if ($("todayDate")) $("todayDate").textContent = today.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric",year:"numeric"});
+    const totalQty = reagents.reduce((s,r)=>s+reagentSummary(r.id).total,0);
+    if ($("homeStatBuffers")) $("homeStatBuffers").textContent = reagents.length;
+    if ($("homeStatLow")) $("homeStatLow").textContent = lowStockReagents().length;
+    if ($("homeStatExpiring")) $("homeStatExpiring").textContent = expiringLotCount();
+    if ($("homeStatQty")) $("homeStatQty").textContent = totalQty;
 
-      if (!senderName) return alert("Please enter your name.");
-      if (!message) return alert("Please enter a message.");
+    const box = $("homeRecentActivity");
+    if (!box) return;
+    if (!logs.length) { box.innerHTML = '<div class="muted">No activity yet.</div>'; return; }
+    box.innerHTML = logs.slice(0,5).map(log => {
+      const bad = ["EXPIRED","INPUT_ERROR"].includes(log.action);
+      const warn = ["PHYSICAL_COUNT"].includes(log.action);
+      return `<div class="activity"><span class="dot ${bad?"bad":warn?"warn":""}"></span><div><strong>${escapeHTML(log.code || "")}</strong> · ${escapeHTML(log.action || "")}${log.change_text ? `<br><span class="muted">${escapeHTML(log.change_text)}</span>` : ""}</div><time>${formatTime(log.created_at)}</time></div>`;
+    }).join("");
+  }
 
-      const reagentId = reagentIdRaw ? Number(reagentIdRaw) : null;
-      const {error} = await supabaseClient.from("messages").insert({
-        sender_name:senderName,
-        reagent_id:reagentId,
-        message,
-        status:"NEW"
+  /* ---------- Buffer view ---------- */
+  function renderBufferStats() {
+    const totalQty = reagents.reduce((s,r)=>s+reagentSummary(r.id).total,0);
+    if ($("bufferStatTypes")) $("bufferStatTypes").textContent = reagents.length;
+    if ($("bufferStatQty")) $("bufferStatQty").textContent = totalQty;
+    if ($("bufferStatLow")) $("bufferStatLow").textContent = lowStockReagents().length;
+    if ($("bufferStatExp")) $("bufferStatExp").textContent = expiringLotCount();
+  }
+
+  function renderLowStockAlerts() {
+    const low = lowStockReagents();
+    const banner = $("lowStockBanner");
+    const list = $("lowStockList");
+    if (!banner || !list) return;
+    list.innerHTML = low.map(x => `<li><strong>${escapeHTML(x.reagent.code)} — ${escapeHTML(x.reagent.name)}</strong>: ${x.total} unopened bottle${x.total === 1 ? "" : "s"} remaining</li>`).join("");
+    banner.classList.toggle("show", low.length > 0);
+  }
+
+  function bufferMatchesSearch(reagent, term) {
+    if (!term) return true;
+    const hay = [reagent.code,reagent.name,...reagentLots(reagent.id).map(l=>l.lot_number)].join(" ").toLowerCase();
+    return hay.includes(term.toLowerCase());
+  }
+
+  function renderInventory() {
+    const table = $("inventoryTable");
+    if (!table) return;
+    const term = $("bufferSearch")?.value.trim() || "";
+    const display = reagents.filter(r => bufferMatchesSearch(r,term));
+    table.innerHTML = "";
+    if (!display.length) { table.innerHTML = `<tr><td colspan="5">No matching reagents.</td></tr>`; return; }
+
+    display.forEach(reagent => {
+      const summary = reagentSummary(reagent.id);
+      const main = document.createElement("tr");
+      main.className = "inventory-main-row";
+      main.dataset.reagentId = reagent.id;
+      main.innerHTML = `<td><span class="expand-icon">▶</span>${escapeHTML(reagent.code)}</td><td>${escapeHTML(reagent.name)}</td><td>${summary.total}</td><td>${summary.nearest ? expirationHTML(summary.nearest) : "—"}</td><td>${summary.lastUpdated ? formatTime(summary.lastUpdated) : "—"}</td>`;
+
+      const details = document.createElement("tr");
+      details.className = "lot-detail-row";
+      const isExpanded = expandedReagents.has(Number(reagent.id));
+      details.style.display = isExpanded ? "table-row" : "none";
+      main.classList.toggle("expanded", isExpanded);
+      details.innerHTML = `<td colspan="5"><div class="lot-panel" id="lotPanel-${reagent.id}"></div></td>`;
+
+      main.addEventListener("click", () => {
+        const reagentId = Number(reagent.id);
+        if (expandedReagents.has(reagentId)) {
+          expandedReagents.delete(reagentId); details.style.display="none"; main.classList.remove("expanded");
+        } else {
+          expandedReagents.add(reagentId); details.style.display="table-row"; main.classList.add("expanded"); renderLotPanel(reagent);
+        }
       });
 
-      if (error) {
-        console.error(error);
-        return alert("Message could not be sent yet. Complete the Supabase messages table/policies first.\n\n" + error.message);
+      table.appendChild(main); table.appendChild(details);
+      if (isExpanded) renderLotPanel(reagent);
+    });
+  }
+
+  function renderLotPanel(reagent) {
+    const panel = $(`lotPanel-${reagent.id}`);
+    if (!panel) return;
+    const rs = reagentLots(reagent.id);
+    if (!rs.length) { panel.innerHTML = `<h4>${escapeHTML(reagent.code)} — ${escapeHTML(reagent.name)}</h4><p>No lot records yet. Add stock through Advanced Update.</p>`; return; }
+    const rows = rs.map(lot => {
+      const original = Number(lot.unopened_count || 0);
+      const pending = Number(pendingUse[lot.id] || 0);
+      const projected = original - pending;
+      return `<tr><td>${escapeHTML(lot.lot_number)}</td><td>${expirationHTML(lot.expiration_date)}</td><td><span class="projected-count" id="count-${lot.id}">${original}${pending ? ` → ${projected}` : ""}</span><span class="pending-change" id="pending-${lot.id}">${pending ? `(-${pending})` : ""}</span></td><td><span class="qty-controls"><button class="arrow-btn up" type="button" onclick="event.stopPropagation(); adjustPending(${lot.id}, -1)">▲</button><button class="arrow-btn down" type="button" onclick="event.stopPropagation(); adjustPending(${lot.id}, 1)">▼</button></span></td></tr>`;
+    }).join("");
+
+    panel.innerHTML = `<h4>${escapeHTML(reagent.code)} — ${escapeHTML(reagent.name)}</h4><div class="table-wrapper"><table class="lot-table"><thead><tr><th>LOT NUMBER</th><th>EXPIRATION DATE</th><th>UNOPENED BOTTLES</th><th>ADJUST</th></tr></thead><tbody>${rows}</tbody></table></div><div class="quick-submit"><button class="primary-btn" type="button" onclick="event.stopPropagation(); submitQuickUse(${reagent.id})">✓ Submit Changes</button><button class="secondary-btn" type="button" onclick="event.stopPropagation(); clearPendingForReagent(${reagent.id})">Clear Pending</button></div><p class="summary-note">▼ = bottle opened / removed from unopened inventory. ▲ = undo a pending ▼ before submission.</p>`;
+  }
+
+  function adjustPending(lotId, direction) {
+    const lot = lots.find(l => Number(l.id) === Number(lotId));
+    if (!lot) return;
+    const original = Number(lot.unopened_count || 0);
+    const current = Number(pendingUse[lotId] || 0);
+    if (direction > 0) {
+      if (current >= original) return alert("You cannot open more bottles than are currently unopened in this lot.");
+      pendingUse[lotId] = current + 1;
+    } else pendingUse[lotId] = Math.max(0,current-1);
+    if (!pendingUse[lotId]) delete pendingUse[lotId];
+    const pending = Number(pendingUse[lotId] || 0);
+    const countEl = $(`count-${lotId}`); const pendingEl = $(`pending-${lotId}`);
+    if (countEl) countEl.textContent = pending ? `${original} → ${original-pending}` : String(original);
+    if (pendingEl) pendingEl.textContent = pending ? `(-${pending})` : "";
+  }
+
+  function clearPendingForReagent(reagentId) {
+    reagentLots(reagentId).forEach(l => delete pendingUse[l.id]);
+    const reagent = reagents.find(r => Number(r.id) === Number(reagentId));
+    if (reagent) renderLotPanel(reagent);
+  }
+
+  async function submitQuickUse(reagentId) {
+    const reagent = reagents.find(r => Number(r.id) === Number(reagentId));
+    if (!reagent) return;
+    const changes = reagentLots(reagentId).map(l=>({lot:l,qty:Number(pendingUse[l.id]||0)})).filter(x=>x.qty>0);
+    if (!changes.length) return alert("No pending changes to submit.");
+    const summary = changes.map(x => `Lot ${x.lot.lot_number}: -${x.qty}`).join("\n");
+    if (!confirm(`Reagent: ${reagent.code} - ${reagent.name}\n\n${summary}\n\nConfirm?`)) return;
+
+    for (const item of changes) {
+      const {data:fresh,error:fetchError} = await supabaseClient.from("reagent_lots").select("*").eq("id",item.lot.id).single();
+      if (fetchError) return alert("Could not load latest lot inventory:\n"+fetchError.message);
+      const current = Number(fresh.unopened_count || 0);
+      if (item.qty > current) { await refreshAll(); return alert(`Lot ${fresh.lot_number} changed since you opened the page. Please review the latest inventory and try again.`); }
+      const newCount = current - item.qty;
+      const {error:updateError} = await supabaseClient.from("reagent_lots").update({unopened_count:newCount,last_updated:new Date().toISOString()}).eq("id",fresh.id);
+      if (updateError) return alert("Inventory update failed:\n"+updateError.message);
+      await createLog(reagent,"","OPEN_BOTTLE",`Lot ${fresh.lot_number} | Unopened: ${current} → ${newCount}`,`Expiration: ${fresh.expiration_date || "N/A"}`);
+      delete pendingUse[fresh.id];
+    }
+    await refreshAll();
+    alert("Inventory updated successfully.");
+  }
+
+  function renderAlarmSettings() {
+    const box = $("alarmSettingsList");
+    if (!box) return;
+    if (!reagents.length) { box.innerHTML = "<p>No reagents available.</p>"; return; }
+    box.innerHTML = reagents.map(r => `<div class="alarm-item"><input type="checkbox" id="alarm-${r.id}" data-reagent-id="${r.id}" ${isAlarmEnabled(r)?"checked":""}><label for="alarm-${r.id}">${escapeHTML(r.code)} — ${escapeHTML(r.name)}</label></div>`).join("");
+  }
+
+  async function saveAlarmSettings() {
+    const boxes = [...document.querySelectorAll('#alarmSettingsList input[type="checkbox"]')];
+    if (!boxes.length) return alert("No reagents available.");
+    const updates = boxes.map(box=>({id:Number(box.dataset.reagentId),alarm_enabled:box.checked}));
+    for (const item of updates) {
+      const {error} = await supabaseClient.from("reagents").update({alarm_enabled:item.alarm_enabled}).eq("id",item.id);
+      if (error) return alert("Alarm settings could not be saved.\n\n"+error.message);
+      const reagent = reagents.find(r=>Number(r.id)===Number(item.id));
+      if (reagent) reagent.alarm_enabled=item.alarm_enabled;
+    }
+    renderLowStockAlerts(); renderHome(); renderBufferStats();
+    await refreshAll();
+    alert("Low-stock / email alarm settings saved.");
+  }
+
+  /* ---------- Advanced ---------- */
+  function updateReagentDropdown() {
+    const dropdown = $("reagentSelect");
+    if (!dropdown) return;
+    const oldValue = dropdown.value;
+    dropdown.innerHTML = "";
+    if (!reagents.length) { dropdown.innerHTML = `<option value="">No reagents available</option>`; return; }
+    reagents.forEach(reagent => { const option=document.createElement("option"); option.value=reagent.id; option.textContent=`${reagent.code} - ${reagent.name}`; dropdown.appendChild(option); });
+    if (reagents.some(r=>String(r.id)===String(oldValue))) dropdown.value=oldValue;
+    updateLotDropdown();
+  }
+
+  function updateLotDropdown() {
+    const select = $("lotSelect"); if (!select || !$("reagentSelect")) return;
+    const reagentId = Number($("reagentSelect").value); const rs = reagentLots(reagentId); select.innerHTML="";
+    if (!rs.length) { select.innerHTML = `<option value="">No lots available</option>`; return; }
+    rs.forEach(lot=>{ const opt=document.createElement("option"); opt.value=lot.id; opt.textContent=`${lot.lot_number} | Exp ${formatDate(lot.expiration_date)} | ${lot.unopened_count} unopened`; select.appendChild(opt); });
+  }
+
+  function updateAdminForm() {
+    if (!$("actionSelect")) return;
+    const action = $("actionSelect").value;
+    const newStock = action === "NEW_STOCK";
+    const existingLot = ["EXPIRED","PHYSICAL_COUNT","INPUT_ERROR"].includes(action);
+    $("newStockArea").style.display = newStock ? "block":"none";
+    $("existingLotArea").style.display = existingLot ? "block":"none";
+    $("lotQuantityArea").style.display = action === "EXPIRED" ? "block":"none";
+    $("physicalCountArea").style.display = action === "PHYSICAL_COUNT" ? "block":"none";
+    $("errorCorrectionArea").style.display = action === "INPUT_ERROR" ? "block":"none";
+    if (existingLot) updateLotDropdown();
+  }
+
+  function validWholeNumber(raw,min=0) {
+    const n = Number(raw);
+    return raw !== "" && Number.isInteger(n) && n >= min ? n : null;
+  }
+
+  async function addNewReagent() {
+    const code=$("newCode").value.trim().toUpperCase(); const name=$("newName").value.trim(); const user=$("newReagentUser").value.trim(); const note=$("newReagentNote").value.trim();
+    if (!code || !name) return alert("Please enter both CODE and NAME.");
+    if (!user) return alert("Please enter your name.");
+    if (reagents.some(r=>String(r.code).toUpperCase()===code)) return alert("This reagent code already exists.");
+    const {data,error}=await supabaseClient.from("reagents").insert({code,name,last_updated:new Date().toISOString()}).select().single();
+    if (error) return alert("Unable to add reagent:\n"+error.message);
+    await createLog(data,user,"NEW_REAGENT","Reagent master record created",note);
+    $("newCode").value=""; $("newName").value=""; $("newReagentNote").value="";
+    await refreshAll(); alert("New reagent added successfully. Add stock through Advanced Update.");
+  }
+
+  async function updateInventory() {
+    if (!reagents.length) return alert("There are no reagents in the database.");
+    const reagentId=Number($("reagentSelect").value); const reagent=reagents.find(r=>Number(r.id)===reagentId); const action=$("actionSelect").value; const user=$("updatedBy").value.trim(); const note=$("note").value.trim();
+    if (!reagent) return alert("Please select a reagent."); if (!user) return alert("Please enter your name.");
+
+    if (action === "NEW_STOCK") {
+      const lotNumber=$("newLotNumber").value.trim(); const expirationDate=$("newExpirationDate").value; const quantity=validWholeNumber($("newStockQuantity").value,1);
+      if (!lotNumber) return alert("Please enter a lot number."); if (!expirationDate) return alert("Please enter an expiration date."); if (quantity===null) return alert("Quantity must be a positive whole number.");
+      const existing=lots.find(l=>Number(l.reagent_id)===reagentId && String(l.lot_number).trim().toUpperCase()===lotNumber.toUpperCase());
+      if (existing) {
+        if (existing.expiration_date && existing.expiration_date!==expirationDate) return alert(`Lot ${lotNumber} already exists.\n\nExisting expiration: ${formatDate(existing.expiration_date)}\nEntered expiration: ${formatDate(expirationDate)}\n\nPlease verify the lot number or expiration date.`);
+        const oldCount=Number(existing.unopened_count||0); const newCount=oldCount+quantity;
+        const {error}=await supabaseClient.from("reagent_lots").update({unopened_count:newCount,expiration_date:expirationDate,last_updated:new Date().toISOString()}).eq("id",existing.id);
+        if (error) return alert("Unable to update lot:\n"+error.message);
+        await createLog(reagent,user,"NEW_STOCK",`Lot ${lotNumber} | Unopened: ${oldCount} → ${newCount}`,note||`Expiration: ${expirationDate}`);
+      } else {
+        const {error}=await supabaseClient.from("reagent_lots").insert({reagent_id:reagentId,lot_number:lotNumber,expiration_date:expirationDate,unopened_count:quantity,last_updated:new Date().toISOString()});
+        if (error) return alert("Unable to create lot:\n"+error.message);
+        await createLog(reagent,user,"NEW_STOCK",`Lot ${lotNumber} created | Unopened: 0 → ${quantity}`,note||`Expiration: ${expirationDate}`);
       }
-
-      $("messageText").value = "";
-      $("messageSuccess").classList.add("show");
-      setTimeout(() => $("messageSuccess")?.classList.remove("show"), 4000);
+    } else {
+      const lotId=Number($("lotSelect").value); const {data:lot,error:lotError}=await supabaseClient.from("reagent_lots").select("*").eq("id",lotId).single();
+      if (lotError || !lot) return alert("Please select a valid lot.");
+      const oldCount=Number(lot.unopened_count||0); let newCount=oldCount; let changeText="";
+      if (action === "EXPIRED") {
+        const qty=validWholeNumber($("adminQuantity").value,1); if (qty===null) return alert("Quantity must be a positive whole number."); if (qty>oldCount) return alert(`Not enough unopened bottles. Currently available: ${oldCount}`); newCount=oldCount-qty; changeText=`Lot ${lot.lot_number} | Unopened: ${oldCount} → ${newCount}`;
+      } else if (action === "PHYSICAL_COUNT") {
+        const n=validWholeNumber($("actualUnopened").value,0); if (n===null) return alert("Enter a valid non-negative whole number."); newCount=n; changeText=`Lot ${lot.lot_number} | Physical Count: ${oldCount} → ${newCount}`;
+      } else if (action === "INPUT_ERROR") {
+        const n=validWholeNumber($("correctUnopened").value,0); if (n===null) return alert("Enter a valid non-negative whole number."); newCount=n; changeText=`Lot ${lot.lot_number} | Correction: ${oldCount} → ${newCount}`;
+      }
+      if (!confirm(`Reagent: ${reagent.code} - ${reagent.name}\nLot: ${lot.lot_number}\nAction: ${action}\n${changeText}\nUpdated by: ${user}\n\nConfirm?`)) return;
+      const {error:updateError}=await supabaseClient.from("reagent_lots").update({unopened_count:newCount,last_updated:new Date().toISOString()}).eq("id",lot.id);
+      if (updateError) return alert("Inventory update failed:\n"+updateError.message);
+      await createLog(reagent,user,action,changeText,note||`Expiration: ${lot.expiration_date||"N/A"}`);
     }
+    $("note").value=""; await refreshAll(); alert("Inventory updated successfully.");
+  }
 
-    async function createLog(reagent,user,action,changeText,note) {
-      const {error} = await supabaseClient.from("logs").insert({
-        reagent_id:reagent.id,
-        code:reagent.code,
-        name:reagent.name,
-        user_name:user,
-        action,
-        change_text:changeText,
-        note:note || ""
-      });
-      if (error) { console.error("Log error:",error); return error; }
-      return null;
-    }
+  /* ---------- Logs + usage analytics ---------- */
+  function renderLogs() {
+    const table=$("logTable"); if (!table) return; table.innerHTML="";
+    if (!logs.length) { table.innerHTML=`<tr><td colspan="7">No logs yet.</td></tr>`; return; }
+    logs.forEach(log=>{ const row=document.createElement("tr"); row.innerHTML=`<td>${formatTime(log.created_at)}</td><td>${escapeHTML(log.user_name||"—")}</td><td>${escapeHTML(log.code)}</td><td>${escapeHTML(log.name)}</td><td>${escapeHTML(log.action)}</td><td>${escapeHTML(log.change_text)}</td><td>${escapeHTML(log.note||"")}</td>`; table.appendChild(row); });
+  }
 
-    function hasPendingQuickChanges() {
-      return Object.values(pendingUse).some(v => Number(v) > 0);
-    }
+  function usageQuantityFromLog(log) {
+    if (log.action !== "OPEN_BOTTLE") return 0;
+    const text=String(log.change_text||"");
+    const m=text.match(/Unopened:\s*(\d+)\s*(?:→|->)\s*(\d+)/i);
+    if (!m) return 0;
+    return Math.max(0,Number(m[1])-Number(m[2]));
+  }
 
-    createNumberOptions();
-    updateAdminForm();
-    refreshAll();
-    setInterval(() => {
-      if (!hasPendingQuickChanges()) refreshAll();
-    }, 5000);
-  </script>
+  function renderUsageFilters() {
+    const box=$("usageBufferList"); if (!box) return;
+    if (!reagents.length) { box.innerHTML='<div class="muted">No buffers available.</div>'; return; }
+    if (!usageSelected.size) usageSelected.add(Number(reagents[0].id));
+    box.innerHTML=reagents.map(r=>`<label class="usage-check"><input type="checkbox" data-usage-id="${r.id}" ${usageSelected.has(Number(r.id))?"checked":""}><span><strong>${escapeHTML(r.code)}</strong><br>${escapeHTML(r.name)}</span></label>`).join("");
+    box.querySelectorAll('input[type="checkbox"]').forEach(cb=>cb.addEventListener("change",()=>{ const id=Number(cb.dataset.usageId); if(cb.checked) usageSelected.add(id); else usageSelected.delete(id); renderUsageChart(); }));
+  }
+
+  function selectAllUsageBuffers() { reagents.forEach(r=>usageSelected.add(Number(r.id))); renderUsageFilters(); renderUsageChart(); }
+
+  function monthKey(date) { return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}`; }
+  function monthLabel(key) { const [y,m]=key.split("-").map(Number); return new Date(y,m-1,1).toLocaleDateString(undefined,{month:"short",year:"numeric"}); }
+
+  function usageLogsInRange() {
+    const all=logs.filter(l=>l.action==="OPEN_BOTTLE" && usageQuantityFromLog(l)>0 && l.created_at);
+    if (usageRangeMonths === "all") return all;
+    const cutoff=new Date(); cutoff.setMonth(cutoff.getMonth()-Number(usageRangeMonths)+1); cutoff.setDate(1); cutoff.setHours(0,0,0,0);
+    return all.filter(l=>new Date(l.created_at)>=cutoff);
+  }
+
+  function renderUsageChart() {
+    const canvas=$("usageChart"); if (!canvas || typeof Chart === "undefined") return;
+    const source=usageLogsInRange();
+    let start;
+    if (usageRangeMonths === "all") {
+      start=source.length ? new Date(Math.min(...source.map(x=>new Date(x.created_at).getTime()))) : new Date(); start.setDate(1);
+    } else { start=new Date(); start.setMonth(start.getMonth()-Number(usageRangeMonths)+1); start.setDate(1); start.setHours(0,0,0,0); }
+    const end=new Date(); end.setDate(1); end.setHours(0,0,0,0);
+    const keys=[]; const cur=new Date(start.getFullYear(),start.getMonth(),1);
+    while (cur<=end && keys.length<60) { keys.push(monthKey(cur)); cur.setMonth(cur.getMonth()+1); }
+    if (!keys.length) keys.push(monthKey(new Date()));
+
+    const palette=["#3f8fd2","#45a47a","#e6a21d","#8069d9","#d75c73","#25a7a2","#ec8840","#607d8b"];
+    const selectedReagents=reagents.filter(r=>usageSelected.has(Number(r.id)));
+    const datasets=selectedReagents.map((r,i)=>{
+      const totals=Object.fromEntries(keys.map(k=>[k,0]));
+      source.filter(l=>Number(l.reagent_id)===Number(r.id) || String(l.code)===String(r.code)).forEach(l=>{ const key=monthKey(new Date(l.created_at)); if(key in totals) totals[key]+=usageQuantityFromLog(l); });
+      return { label:`${r.code} — ${r.name}`, data:keys.map(k=>totals[k]||0), borderColor:palette[i%palette.length], backgroundColor:palette[i%palette.length], tension:.32, borderWidth:2.4, pointRadius:3, pointHoverRadius:5, fill:false };
+    });
+
+    if (usageChartInstance) usageChartInstance.destroy();
+    usageChartInstance=new Chart(canvas,{ type:"line", data:{labels:keys.map(monthLabel),datasets}, options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},plugins:{legend:{display:datasets.length>1,position:"bottom",labels:{boxWidth:10,usePointStyle:true,font:{size:10}}},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y} bottle${ctx.parsed.y===1?"":"s"} used`}}},scales:{y:{beginAtZero:true,ticks:{precision:0},title:{display:true,text:"Bottles Used"}},x:{grid:{display:false}}}} });
+  }
+
+  document.querySelectorAll(".range-btn").forEach(btn=>btn.addEventListener("click",()=>{ document.querySelectorAll(".range-btn").forEach(b=>b.classList.remove("active")); btn.classList.add("active"); usageRangeMonths=btn.dataset.range==="all"?"all":Number(btn.dataset.range); renderUsageChart(); }));
+
+  /* ---------- Standing orders ---------- */
+  function renderStandingOrders() {
+    const table=$("standingOrderTable"); if (!table) return; table.innerHTML="";
+    if (!standingOrders.length) { table.innerHTML=`<tr><td colspan="8">No standing orders.</td></tr>`; return; }
+    standingOrders.forEach(order=>{ const row=document.createElement("tr"); row.innerHTML=`<td>${escapeHTML(order.order_number)}</td><td>${escapeHTML(order.buffer_code)}</td><td>${escapeHTML(order.buffer_name)}</td><td>${escapeHTML(order.requestor)}</td><td>${order.delivery_volume_l??""}</td><td>${formatDate(order.start_date)}</td><td>${formatDate(order.end_date)}</td><td>${escapeHTML(order.frequency)}</td>`; table.appendChild(row); });
+  }
+
+  /* ---------- Messages ---------- */
+  function updateMessageReagentDropdown() {
+    const select=$("messageReagent"); if (!select) return; const old=select.value; select.innerHTML='<option value="">General / No specific buffer</option>';
+    reagents.forEach(r=>{ const opt=document.createElement("option"); opt.value=r.id; opt.textContent=`${r.code} - ${r.name}`; select.appendChild(opt); });
+    if ([...select.options].some(o=>o.value===old)) select.value=old;
+  }
+
+  async function sendAdminMessage() {
+    const senderName=$("messageName").value.trim(); const reagentIdRaw=$("messageReagent").value; const message=$("messageText").value.trim();
+    if (!senderName) return alert("Please enter your name."); if (!message) return alert("Please enter a message.");
+    const reagentId=reagentIdRaw?Number(reagentIdRaw):null;
+    const {error}=await supabaseClient.from("messages").insert({sender_name:senderName,reagent_id:reagentId,message,status:"NEW"});
+    if (error) return alert("Message could not be sent.\n\n"+error.message);
+    $("messageText").value=""; $("messageSuccess").classList.add("show"); setTimeout(()=>$("messageSuccess")?.classList.remove("show"),4000);
+  }
+
+  async function createLog(reagent,user,action,changeText,note) {
+    const {error}=await supabaseClient.from("logs").insert({reagent_id:reagent.id,code:reagent.code,name:reagent.name,user_name:user,action,change_text:changeText,note:note||""});
+    if (error) { console.error("Log error:",error); return error; }
+    return null;
+  }
+
+  function hasPendingQuickChanges() { return Object.values(pendingUse).some(v=>Number(v)>0); }
+
+  /* ---------- Search + initialisation ---------- */
+  $("bufferSearch")?.addEventListener("input",renderInventory);
+  $("globalSearch")?.addEventListener("input",event=>{
+    const term=event.target.value;
+    if (!term) return;
+    goToView("buffers");
+    setTimeout(()=>{ if($("bufferSearch")){ $("bufferSearch").value=term; renderInventory(); } },0);
+  });
+  document.addEventListener("keydown",e=>{ if ((e.metaKey||e.ctrlKey) && e.key.toLowerCase()==="k") { e.preventDefault(); $("globalSearch")?.focus(); } });
+
+  updateAdminForm();
+  renderActiveView(location.hash.replace("#","") || "home");
+  refreshAll();
+  setInterval(()=>{ if(!hasPendingQuickChanges()) refreshAll(); },5000);
+</script>
 </body>
 </html>
