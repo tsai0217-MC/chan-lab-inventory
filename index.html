@@ -454,25 +454,50 @@
     .location-path { font-weight:750; color:#315b79; }
     .location-qty { font-size:17px; font-weight:850; white-space:nowrap; }
     .matrix-use-row { display:grid; grid-template-columns:1fr 110px 140px 1fr auto; gap:9px; align-items:end; margin-top:12px; padding-top:12px; border-top:1px solid #e2edf3; }
-    .storage-tree { display:grid; gap:8px; }
-    .storage-node { border:1px solid #dce8f0; border-radius:12px; background:#fff; padding:11px 13px; }
-    .storage-node-head { display:flex; gap:10px; align-items:center; justify-content:space-between; }
-    .storage-node-title { font-weight:800; color:#315b79; }
-    .storage-children { margin:9px 0 0 18px; display:grid; gap:7px; }
-    .storage-badge { font-size:10px; border-radius:999px; padding:4px 7px; background:#eef6fb; color:#58768c; border:1px solid #d7e7f0; }
-    .location-entry { padding:13px; border:1px solid #dce8f0; border-radius:12px; background:#fbfdff; margin-bottom:10px; }
-    .location-entry-head { display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:10px; }
-    .storage-map-grid { display:grid; grid-template-columns:340px minmax(0,1fr); gap:16px; align-items:start; }
+    .storage-map-shell { display:grid; gap:16px; }
+    .storage-toolbar { display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap; }
+    .storage-breadcrumbs { display:flex; gap:7px; align-items:center; flex-wrap:wrap; color:#688398; font-size:12px; font-weight:750; }
+    .storage-breadcrumbs button { border:0; background:transparent; color:#397fb9; cursor:pointer; padding:0; font:inherit; }
+    .storage-workspace { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(280px,.7fr); gap:16px; align-items:start; }
+    .storage-stage { min-height:500px; }
+    .storage-stage-head { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; margin-bottom:14px; }
+    .storage-stage-title { margin:0; font-family:Georgia,"Times New Roman",serif; color:#244f72; font-size:28px; }
+    .storage-level-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:13px; }
+    .storage-level-card { border:1px solid #d7e7f1; border-radius:16px; background:linear-gradient(180deg,#fff,#f8fcff); padding:16px; cursor:pointer; transition:.16s ease; text-align:left; min-height:132px; }
+    .storage-level-card:hover { transform:translateY(-2px); box-shadow:0 10px 24px rgba(52,101,137,.10); border-color:#9ec9e5; }
+    .storage-level-card .storage-card-icon { width:46px; height:46px; display:grid; place-items:center; border-radius:13px; background:#eaf5fc; font-size:25px; margin-bottom:12px; }
+    .storage-level-card h3 { margin:0 0 4px; color:#285777; font-size:17px; }
+    .storage-level-card p { margin:0; color:#738a9a; font-size:11px; }
+    .freezer-visual { border:1px solid #d9e8f1; border-radius:18px; background:linear-gradient(180deg,#fafdff,#f3f8fb); padding:18px; margin-bottom:16px; }
+    .freezer-cabinet { max-width:720px; margin:0 auto; border:8px solid #7d8b94; border-radius:15px; background:#dfe7eb; padding:16px; box-shadow:inset 0 0 0 3px #bac6cc; }
+    .freezer-inner { background:#f8fbfc; border:3px solid #9eabb3; border-radius:8px; padding:10px; display:grid; gap:8px; }
+    .freezer-shelf-row { display:grid; grid-template-columns:70px minmax(0,1fr); gap:9px; align-items:center; }
+    .freezer-shelf-label { font-weight:850; color:#365f7b; text-align:center; font-size:12px; }
+    .freezer-rack-row { display:grid; gap:7px; }
+    .freezer-rack-cell { border:2px solid #b5c4cd; border-radius:7px; background:linear-gradient(180deg,#fff,#edf3f6); min-height:54px; display:grid; place-items:center; font-weight:900; color:#344f62; cursor:pointer; }
+    .freezer-rack-cell:hover { border-color:#4a9bd4; background:#e8f5ff; color:#1977b8; }
+    .storage-side { display:grid; gap:14px; }
+    .location-guide { border:1px solid #dce9f1; border-radius:16px; background:#fff; padding:16px; }
+    .location-guide h3 { margin:0 0 7px; color:#285777; }
+    .guide-grid { display:grid; gap:5px; margin:13px 0; }
+    .guide-row { display:grid; gap:5px; align-items:center; }
+    .guide-cell { min-height:30px; border:1px solid #cfe2ee; border-radius:6px; background:#eff8fd; display:grid; place-items:center; color:#39759f; font-size:10px; font-weight:800; }
+    .guide-axis { color:#718899; font-size:10px; font-weight:750; }
     .storage-result { display:grid; gap:9px; }
     .storage-result-card { padding:13px 15px; border:1px solid #dce8f0; border-radius:12px; background:#fff; }
     .storage-path-line { color:#5a7488; font-size:12px; margin-top:4px; }
+    .storage-empty { min-height:180px; border:1px dashed #c8dce8; border-radius:14px; display:grid; place-items:center; text-align:center; color:#758b9a; padding:22px; }
+    .storage-back { border:1px solid #cfe0eb; background:#fff; color:#47728f; border-radius:9px; padding:8px 11px; font-weight:750; cursor:pointer; }
     .matrix-log-table { margin-top:16px; }
-    @media (max-width:1100px){ .storage-map-grid{grid-template-columns:1fr}.matrix-use-row{grid-template-columns:1fr 1fr}.matrix-use-row .wide{grid-column:1/-1} }
-    @media (max-width:760px){ .location-card,.matrix-use-row{grid-template-columns:1fr}.storage-map-grid{grid-template-columns:1fr} }
+    @media (max-width:1100px){ .storage-workspace{grid-template-columns:1fr}.matrix-use-row{grid-template-columns:1fr 1fr}.matrix-use-row .wide{grid-column:1/-1} }
+    @media (max-width:760px){ .location-card,.matrix-use-row{grid-template-columns:1fr}.storage-workspace{grid-template-columns:1fr}.freezer-shelf-row{grid-template-columns:55px 1fr} }
 
     /* ---------- Advanced ---------- */
     .advanced-intro { margin-bottom: 16px; }
-    .advanced-grid { display: grid; grid-template-columns: .86fr 1.14fr; gap: 16px; align-items: start; }
+    .advanced-grid { display: grid; grid-template-columns: 1fr; gap: 18px; align-items: start; }
+    .advanced-grid > div { min-width:0; }
+    .advanced-grid .setup-grid { grid-template-columns: repeat(2,minmax(360px,1fr)); gap:18px; }
+    @media (max-width:1050px){ .advanced-grid .setup-grid{grid-template-columns:1fr;} }
     .action-menu { display: grid; gap: 9px; margin-bottom: 16px; }
     .action-card { display: flex; align-items: center; gap: 11px; border: 1px solid var(--line); border-radius: 12px; padding: 12px; background: #fff; }
     .action-card .ico { width: 38px; height: 38px; border-radius: 10px; display:grid;place-items:center;background:#edf6fd;font-size:19px; }
@@ -524,7 +549,9 @@
       .hero { padding:28px 22px; min-height:240px; }
       .page-banner { align-items:flex-start;flex-direction:column; }
     }
-  </style>
+  
+    .update-chooser{display:grid;grid-template-columns:repeat(2,minmax(260px,1fr));gap:18px;margin:18px 0}.update-choice{border:1px solid #d5e5ef;border-radius:18px;background:linear-gradient(180deg,#fff,#f7fbfe);padding:24px;text-align:left;cursor:pointer;transition:.16s}.update-choice:hover,.update-choice.active{transform:translateY(-2px);border-color:#78b6df;box-shadow:0 12px 28px rgba(54,105,142,.11)}.update-choice .choice-icon{font-size:32px}.update-choice h3{margin:8px 0 5px;color:#285777;font-family:Georgia,serif;font-size:24px}.update-choice p{margin:0;color:#728899}.update-workspace{display:none}.update-workspace.active{display:block}.workspace-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}.workspace-tab{border:1px solid #cfe0eb;background:#f7fbfe;color:#47728f;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer}.workspace-tab.active{background:#e7f3fb;border-color:#7fb9df;color:#236fa4}.workspace-panel{display:none}.workspace-panel.active{display:block}.matrix-search-wrap{position:relative}.matrix-suggestions{position:absolute;z-index:30;left:0;right:0;top:100%;margin-top:5px;background:#fff;border:1px solid #cfe0eb;border-radius:12px;box-shadow:0 14px 30px rgba(38,79,108,.15);max-height:280px;overflow:auto;display:none}.matrix-suggestion{padding:12px 14px;border-bottom:1px solid #edf3f7;cursor:pointer}.matrix-suggestion:last-child{border-bottom:0}.matrix-suggestion:hover{background:#f0f8fd}.matrix-suggestion strong{display:block;color:#285777}.matrix-suggestion small{color:#718899}.selected-matrix-card{display:none;margin-top:12px;padding:15px;border:1px solid #cfe3ef;border-radius:13px;background:#f8fcff}.selected-matrix-card.show{display:block}.compact-guide{font-size:11px}.storage-workspace{grid-template-columns:minmax(0,1fr) 250px}.location-guide{padding:12px}.location-guide h3{font-size:16px}.location-guide p,.location-guide .guide-axis{font-size:9px}.storage-result-card{padding:10px 12px}.level-summary{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}.level-pill{background:#edf6fb;border:1px solid #d3e7f2;border-radius:999px;padding:6px 10px;color:#52758d;font-size:11px;font-weight:750}@media(max-width:850px){.update-chooser{grid-template-columns:1fr}.storage-workspace{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
 <div class="app-shell">
@@ -761,110 +788,96 @@
 
     <!-- STORAGE MAP -->
     <section id="view-storage" class="view">
-      <section class="page-banner card"><div><div class="eyebrow">Scalable location hierarchy</div><h1>🧊 Storage Map</h1><p>Browse storage from the location side: freezer, refrigerator, shelf, rack, drawer, box, bin, or any future hierarchy.</p></div></section>
-      <div class="storage-map-grid">
+      <section class="page-banner card">
+        <div>
+          <div class="eyebrow">Data-driven freezer navigation</div>
+          <h1>🧊 Storage Map</h1>
+          <p>Navigate storage like a real freezer. Open a freezer, then drill down through shelf → rack → box. The layout is generated from Supabase, so new shelves, racks, boxes, or freezers appear automatically.</p>
+        </div>
+      </section>
+
+      <div class="storage-map-shell">
         <section class="card card-pad">
-          <div class="section-head"><div><h2 class="section-title" style="font-size:24px">Storage Locations</h2><p class="helper">Select any node to see matrices stored under it.</p></div></div>
-          <div id="storageTree" class="storage-tree"></div>
+          <div class="storage-toolbar">
+            <div id="storageBreadcrumbs" class="storage-breadcrumbs"></div>
+            <button id="storageBackBtn" class="storage-back" type="button" onclick="storageGoBack()" style="display:none">← Back</button>
+          </div>
         </section>
-        <section class="card card-pad">
-          <div class="section-head"><div><div class="eyebrow">Contents</div><h2 id="storageContentsTitle" class="section-title" style="font-size:24px">All Storage</h2></div></div>
-          <div id="storageContents" class="storage-result"></div>
-        </section>
+
+        <div class="storage-workspace">
+          <section class="card card-pad storage-stage">
+            <div class="storage-stage-head">
+              <div>
+                <div id="storageStageEyebrow" class="eyebrow">Freezers</div>
+                <h2 id="storageStageTitle" class="storage-stage-title">Select a Freezer</h2>
+                <p id="storageStageHelper" class="helper">Only top-level storage locations are shown here.</p>
+              </div>
+            </div>
+            <div id="storageVisual"></div>
+            <div id="storageLevelGrid" class="storage-level-grid"></div>
+          </section>
+
+          <aside class="storage-side">
+            <section class="location-guide">
+              <div class="eyebrow">Reference map</div>
+              <h3>Location Naming Guide</h3>
+              <p class="helper">Shelf numbers increase from top → bottom. Rack letters increase from left → right. The guide changes with the selected freezer.</p>
+              <div id="storageGuide"></div>
+            </section>
+
+            <section class="card card-pad">
+              <div class="eyebrow">Contents</div>
+              <h2 id="storageContentsTitle" class="section-title" style="font-size:22px">All Storage</h2>
+              <div id="storageContents" class="storage-result"></div>
+            </section>
+          </aside>
+        </div>
       </div>
     </section>
 
     <!-- ADVANCED UPDATE -->
     <section id="view-advanced" class="view">
-      <section class="page-banner card advanced-intro">
-        <div><div class="eyebrow">For detailed inventory management</div><h1>⚙ Advanced Update</h1><p>Use Advanced Update for inventory setup and non-routine changes across the lab. Add new reagents or biological matrices here, receive stock, record expired or discarded material, perform physical counts, and correct known inventory errors. Routine Common Buffer usage should still be recorded with the arrow controls on the Common Buffers page.</p></div>
+      <section class="page-banner card advanced-intro"><div><div class="eyebrow">Inventory management</div><h1>⚙ Advanced Update</h1><p>Choose what you want to update first. Only the tools for that inventory type will be shown.</p></div></section>
+      <section class="card card-pad">
+        <div class="eyebrow">Step 1</div><h2 class="section-title" style="font-size:26px">What would you like to update?</h2>
+        <div class="update-chooser">
+          <button id="chooseReagent" class="update-choice" type="button" onclick="chooseUpdateType('reagent')"><div class="choice-icon">⚗️</div><h3>Common Buffer / Reagent</h3><p>Create a reagent, receive stock, discard, count, or correct an existing lot.</p></button>
+          <button id="chooseMatrix" class="update-choice" type="button" onclick="chooseUpdateType('matrix')"><div class="choice-icon">🧬</div><h3>Biological Matrix</h3><p>Create a new matrix or search an existing sample to add, use, count, move, discard, or correct inventory.</p></button>
+        </div>
       </section>
 
-      <div class="advanced-grid">
-        <div>
-          <section class="card card-pad">
-            <div class="section-head"><div><h2 class="section-title" style="font-size:24px">Available Functions <span class="advanced-label">ADVANCED</span></h2></div></div>
-            <div class="action-menu">
-              <div class="action-card"><div class="ico">📦</div><div><b>New Stock</b><small>Register newly transferred inventory with lot and expiration date.</small></div></div>
-              <div class="action-card"><div class="ico">🗑️</div><div><b>Expired / Discard</b><small>Remove unopened bottles that are expired or discarded.</small></div></div>
-              <div class="action-card"><div class="ico">📋</div><div><b>Physical Count</b><small>Set inventory to the actual observed unopened count.</small></div></div>
-              <div class="action-card"><div class="ico">✎</div><div><b>Input Error Correction</b><small>Correct a known inventory entry mistake.</small></div></div>
-            </div>
-            <p class="helper">All quantity fields on this page use direct number entry. New Stock and Expired / Discard require at least 1. Physical Count and Input Error Correction may be 0.</p>
-          </section>
-
-          <div class="setup-grid" style="margin-top:16px">
-            <section class="card card-pad">
-              <div class="section-head"><div><div class="eyebrow">Common Buffers · Master record</div><h2 class="section-title" style="font-size:24px">＋ Add New Reagent</h2><p class="helper">Create a new Common Buffer / reagent master record. This does not add physical stock; after creating the reagent, use <strong>New Stock</strong> in Update Inventory to register its lot, expiration date, and quantity.</p></div></div>
-              <div class="form-row"><label for="newCode">Code</label><input id="newCode" type="text" placeholder="Example: A4806"></div>
-              <div class="form-row"><label for="newName">Name</label><input id="newName" type="text" placeholder="Example: LM BCP Block Buffer"></div>
-              <div class="form-row"><label for="newReagentUser">Added By</label><input id="newReagentUser" type="text" placeholder="Your name"></div>
-              <div class="form-row"><label for="newReagentNote">Note</label><input id="newReagentNote" type="text" placeholder="Optional"></div>
-              <button class="primary-btn" onclick="addNewReagent()">⚗ Add Reagent</button>
-            </section>
-
-            <section class="card card-pad">
-              <div class="section-head"><div><div class="eyebrow">Biological Matrices · Matrix + storage registration</div><h2 class="section-title" style="font-size:24px">＋ Add New Matrix</h2><p class="helper">Create the matrix once, then register one or more storage locations in the same submission.</p></div></div>
-              <div class="form-row"><label for="matrixSpecies">Species *</label><input id="matrixSpecies" type="text" placeholder="Mouse, Cyno, Rat…"></div>
-              <div class="form-row"><label for="matrixType">Matrix Type *</label><input id="matrixType" type="text" placeholder="Serum, Plasma…"></div>
-              <div class="form-grid">
-                <div class="form-row"><label for="matrixStrain">Strain</label><input id="matrixStrain" type="text" placeholder="CD-1, BALB/c, C57BL/6…"></div>
-                <div class="form-row"><label for="matrixSex">Sex</label><input id="matrixSex" type="text" placeholder="Male, Female, Mixed…"></div>
-              </div>
-              <div class="form-row"><label for="matrixUnit">Unit *</label><input id="matrixUnit" type="text" placeholder="tube, mL, aliquot…" value="tube"></div>
-              <div class="sub-panel">
-                <div class="section-head" style="margin-bottom:10px"><div><strong>Storage & Quantity</strong><div class="helper">Add every location that receives part of this matrix.</div></div></div>
-                <div id="matrixLocationEntries"></div>
-                <button class="secondary-btn" type="button" onclick="addMatrixLocationEntry()">＋ Add Another Location</button>
-              </div>
-              <button id="matrixAddBtn" class="primary-btn" onclick="addMatrixSample()">🧫 Add Matrix & Register Inventory</button>
-            </section>
+      <div id="reagentWorkspace" class="update-workspace">
+        <section class="card card-pad" style="margin-top:16px"><div class="section-head"><div><div class="eyebrow">Common Buffer / Reagent</div><h2 class="section-title">Reagent Workspace</h2></div><button class="soft-btn" onclick="chooseUpdateType(null)">← Change Type</button></div>
+          <div class="workspace-tabs"><button class="workspace-tab active" data-rpanel="reagentUpdatePanel" onclick="showWorkspacePanel('reagent',this)">Update Existing Reagent</button><button class="workspace-tab" data-rpanel="reagentAddPanel" onclick="showWorkspacePanel('reagent',this)">＋ Add New Reagent</button></div>
+          <div id="reagentUpdatePanel" class="workspace-panel active">
+            <div class="form-row"><label for="reagentSelect">Reagent</label><select id="reagentSelect" onchange="updateLotDropdown(); updateAdminForm();"></select></div>
+            <div class="form-row"><label for="actionSelect">Action</label><select id="actionSelect" onchange="updateAdminForm()"><option value="NEW_STOCK">New Stock</option><option value="EXPIRED">Expired / Discard Unopened Bottle</option><option value="PHYSICAL_COUNT">Physical Count</option><option value="INPUT_ERROR">Input Error Correction</option></select></div>
+            <div id="newStockArea" class="sub-panel"><div class="form-row"><label for="newStockLotChoice">Lot</label><select id="newStockLotChoice" onchange="updateNewStockLotMode()"></select></div><div id="existingNewStockLot" class="form-grid" style="display:none"><div class="form-row"><label>Selected Lot Number</label><input id="existingLotNumberDisplay" type="text" readonly></div><div class="form-row"><label>Expiration Date</label><input id="existingExpirationDisplay" type="date" readonly></div></div><div id="newStockNewLotFields" class="form-grid"><div class="form-row"><label for="newLotNumber">New Lot Number</label><input id="newLotNumber" type="text" placeholder="Example: 1123"></div><div class="form-row"><label for="newExpirationDate">Expiration Date</label><input id="newExpirationDate" type="date"></div></div><div class="form-row"><label for="newStockQuantity">Quantity Received</label><input id="newStockQuantity" type="number" min="1" step="1" value="1"></div></div>
+            <div id="existingLotArea" class="sub-panel" style="display:none"><div class="form-row"><label for="lotSelect">Lot</label><select id="lotSelect"></select></div></div><div id="lotQuantityArea" class="sub-panel" style="display:none"><label for="adminQuantity">Quantity to Remove</label><input id="adminQuantity" type="number" min="1" step="1" value="1"></div><div id="physicalCountArea" class="sub-panel" style="display:none"><label for="actualUnopened">Actual Unopened Bottles</label><input id="actualUnopened" type="number" min="0" step="1"></div><div id="errorCorrectionArea" class="sub-panel" style="display:none"><label for="correctUnopened">Correct Unopened Bottles</label><input id="correctUnopened" type="number" min="0" step="1"></div>
+            <div class="form-grid"><div class="form-row"><label for="updatedBy">Updated By</label><input id="updatedBy" type="text" placeholder="Your name"></div><div class="form-row"><label for="note">Note</label><input id="note" type="text" placeholder="Optional"></div></div><button id="updateButton" class="primary-btn" onclick="updateInventory()">✓ Confirm Update</button>
           </div>
-          <section class="card card-pad" style="margin-top:16px">
-            <div class="section-head"><div><div class="eyebrow">Storage hierarchy</div><h2 class="section-title" style="font-size:24px">🧊 Manage Storage</h2><p class="helper">Add a freezer, refrigerator, shelf, rack, drawer, box, bin, or any future location. Parent locations create the hierarchy.</p></div></div>
-            <div class="form-grid">
-              <div class="form-row"><label for="storageName">Name *</label><input id="storageName" type="text" placeholder="Example: B42 -80°C Freezer 3"></div>
-              <div class="form-row"><label for="storageType">Type *</label><input id="storageType" type="text" list="storageTypeOptions" placeholder="Freezer, Shelf, Rack, Box…"><datalist id="storageTypeOptions"><option>Freezer</option><option>Refrigerator</option><option>Cold Room</option><option>Cabinet</option><option>Shelf</option><option>Rack</option><option>Drawer</option><option>Box</option><option>Bin</option></datalist></div>
-            </div>
-            <div class="form-row"><label for="storageParent">Parent Location</label><select id="storageParent"><option value="">None — top level</option></select></div>
-            <div class="form-row"><label for="storageDescription">Description</label><input id="storageDescription" type="text" placeholder="Optional room, temperature, or note"></div>
-            <button class="primary-btn" type="button" onclick="addStorageLocation()">＋ Add Storage Location</button>
-          </section>
-        </div>
-
-        <section class="card card-pad">
-          <div class="section-head"><div><div class="eyebrow">Inventory adjustment</div><h2 class="section-title">Update Inventory</h2></div></div>
-          <div class="form-row"><label for="reagentSelect">Reagent</label><select id="reagentSelect" onchange="updateLotDropdown(); updateAdminForm();"></select></div>
-          <div class="form-row"><label for="actionSelect">Action</label><select id="actionSelect" onchange="updateAdminForm()"><option value="NEW_STOCK">New Stock</option><option value="EXPIRED">Expired / Discard Unopened Bottle</option><option value="PHYSICAL_COUNT">Physical Count</option><option value="INPUT_ERROR">Input Error Correction</option></select></div>
-
-          <div id="newStockArea" class="sub-panel">
-            <div class="form-row"><label for="newStockLotChoice">Lot</label><select id="newStockLotChoice" onchange="updateNewStockLotMode()"></select></div>
-            <div id="existingNewStockLot" class="form-grid" style="display:none">
-              <div class="form-row"><label>Selected Lot Number</label><input id="existingLotNumberDisplay" type="text" readonly></div>
-              <div class="form-row"><label>Expiration Date</label><input id="existingExpirationDisplay" type="date" readonly></div>
-            </div>
-            <div id="newStockNewLotFields" class="form-grid">
-              <div class="form-row"><label for="newLotNumber">New Lot Number</label><input id="newLotNumber" type="text" placeholder="Example: 1123"></div>
-              <div class="form-row"><label for="newExpirationDate">Expiration Date</label><input id="newExpirationDate" type="date"></div>
-            </div>
-            <div class="form-row"><label for="newStockQuantity">Quantity Received</label><input id="newStockQuantity" type="number" min="1" step="1" value="1" placeholder="Enter quantity"></div>
-          </div>
-
-          <div id="existingLotArea" class="sub-panel" style="display:none"><div class="form-row"><label for="lotSelect">Lot</label><select id="lotSelect"></select></div></div>
-
-          <div id="lotQuantityArea" class="sub-panel" style="display:none"><label for="adminQuantity">Quantity to Remove</label><input id="adminQuantity" type="number" min="1" step="1" value="1" placeholder="Enter quantity"></div>
-
-          <div id="physicalCountArea" class="sub-panel" style="display:none"><p class="helper">Enter the actual unopened bottle count for the selected lot.</p><label for="actualUnopened">Actual Unopened Bottles</label><input id="actualUnopened" type="number" min="0" step="1" placeholder="Enter actual count"></div>
-
-          <div id="errorCorrectionArea" class="sub-panel" style="display:none"><p class="helper">Enter the correct final unopened bottle count for the selected lot.</p><label for="correctUnopened">Correct Unopened Bottles</label><input id="correctUnopened" type="number" min="0" step="1" placeholder="Enter correct count"></div>
-
-          <div class="form-grid">
-            <div class="form-row"><label for="updatedBy">Updated By</label><input id="updatedBy" type="text" placeholder="Your name"></div>
-            <div class="form-row"><label for="note">Note</label><input id="note" type="text" placeholder="Optional"></div>
-          </div>
-          <button id="updateButton" class="primary-btn" onclick="updateInventory()">✓ Confirm Update</button>
+          <div id="reagentAddPanel" class="workspace-panel"><div class="form-row"><label for="newCode">Code</label><input id="newCode" type="text" placeholder="Example: A4806"></div><div class="form-row"><label for="newName">Name</label><input id="newName" type="text" placeholder="Example: LM BCP Block Buffer"></div><div class="form-row"><label for="newReagentUser">Added By</label><input id="newReagentUser" type="text" placeholder="Your name"></div><div class="form-row"><label for="newReagentNote">Note</label><input id="newReagentNote" type="text" placeholder="Optional"></div><button class="primary-btn" onclick="addNewReagent()">⚗ Add Reagent</button></div>
         </section>
       </div>
+
+      <div id="matrixWorkspace" class="update-workspace">
+        <section class="card card-pad" style="margin-top:16px"><div class="section-head"><div><div class="eyebrow">Biological Matrix</div><h2 class="section-title">Matrix Workspace</h2></div><button class="soft-btn" onclick="chooseUpdateType(null)">← Change Type</button></div>
+          <div class="workspace-tabs"><button class="workspace-tab active" data-mpanel="matrixExistingPanel" onclick="showWorkspacePanel('matrix',this)">Update Existing Matrix</button><button class="workspace-tab" data-mpanel="matrixAddPanel" onclick="showWorkspacePanel('matrix',this)">＋ Add New Matrix</button></div>
+          <div id="matrixExistingPanel" class="workspace-panel active">
+            <div class="form-row matrix-search-wrap"><label for="existingMatrixSearch">Search Existing Matrix</label><input id="existingMatrixSearch" type="text" autocomplete="off" placeholder="Type species, matrix, strain, sex, or location…" oninput="renderMatrixSuggestions()" onfocus="renderMatrixSuggestions()"><div id="matrixSuggestions" class="matrix-suggestions"></div></div>
+            <div id="selectedMatrixCard" class="selected-matrix-card"></div>
+            <div id="matrixAdjustmentForm" style="display:none">
+              <div class="form-row"><label for="matrixAction">Action</label><select id="matrixAction" onchange="renderMatrixAdjustmentFields()"><option value="ADD_STOCK">Add Stock</option><option value="USE">Use Matrix</option><option value="PHYSICAL_COUNT">Physical Count</option><option value="MOVE">Move Location</option><option value="DISCARD">Discard</option><option value="CORRECTION">Input Error Correction</option></select></div>
+              <div id="matrixAdjustmentFields"></div>
+              <div class="form-grid"><div class="form-row"><label for="matrixUpdateUser">Updated By</label><input id="matrixUpdateUser" type="text" placeholder="Your name"></div><div class="form-row"><label for="matrixUpdateNote">Note</label><input id="matrixUpdateNote" type="text" placeholder="Optional"></div></div>
+              <button class="primary-btn" onclick="updateExistingMatrixInventory()">✓ Confirm Matrix Update</button>
+            </div>
+          </div>
+          <div id="matrixAddPanel" class="workspace-panel"><p class="helper">Use this only when the matrix/sample does not already exist. For an existing sample, use “Update Existing Matrix” so you do not need to re-enter its identity.</p><div class="form-row"><label for="matrixSpecies">Species *</label><input id="matrixSpecies" type="text" placeholder="Mouse, Cyno, Rat…"></div><div class="form-row"><label for="matrixType">Matrix Type *</label><input id="matrixType" type="text" placeholder="Serum, Plasma…"></div><div class="form-grid"><div class="form-row"><label for="matrixStrain">Strain</label><input id="matrixStrain" type="text"></div><div class="form-row"><label for="matrixSex">Sex</label><input id="matrixSex" type="text"></div></div><div class="form-row"><label for="matrixUnit">Unit *</label><input id="matrixUnit" type="text" value="tube"></div><div class="sub-panel"><strong>Storage & Quantity</strong><div id="matrixLocationEntries"></div><button class="secondary-btn" type="button" onclick="addMatrixLocationEntry()">＋ Add Another Location</button></div><button id="matrixAddBtn" class="primary-btn" onclick="addMatrixSample()">🧫 Add Matrix & Register Inventory</button></div>
+        </section>
+      </div>
+
+      <details class="card card-pad" style="margin-top:16px"><summary style="cursor:pointer;font-weight:850;color:#315f7e">🧊 Manage Storage Hierarchy</summary><div style="margin-top:14px"><div class="form-grid"><div class="form-row"><label for="storageName">Name *</label><input id="storageName" type="text" placeholder="Example: Shelf 5"></div><div class="form-row"><label for="storageType">Type *</label><input id="storageType" type="text" list="storageTypeOptions" placeholder="Freezer, Shelf, Rack, Box…"><datalist id="storageTypeOptions"><option>Freezer</option><option>Refrigerator</option><option>Shelf</option><option>Rack</option><option>Box</option><option>Bin</option></datalist></div></div><div class="form-row"><label for="storageParent">Parent Location</label><select id="storageParent"><option value="">None — top level</option></select></div><div class="form-row"><label for="storageDescription">Description</label><input id="storageDescription" type="text" placeholder="Optional"></div><button class="primary-btn" onclick="addStorageLocation()">＋ Add Storage Location</button></div></details>
     </section>
 
     <!-- LOGS -->
@@ -967,10 +980,9 @@
     box.querySelectorAll('.matrix-summary-row').forEach(row=>row.addEventListener('click',()=>toggleMatrixDetails(row.dataset.matrixId))); bindMatrixActionButtons();
   }
   function toggleMatrixDetails(id){ const key=String(id); expandedMatrices.has(key)?expandedMatrices.delete(key):expandedMatrices.add(key); renderMatrices(); }
-  function matrixLocationPanelHTML(m){ const inv=matrixRows(m.id), unit=matrixUnit(m.id); if(!inv.length)return '<p class="helper">No registered storage locations.</p>'; return `<div class="location-list">${inv.map(r=>`<div class="location-card"><div><div class="location-path">📍 ${escapeHTML(storagePath(r.location_id))}</div><div class="muted">Last updated ${r.updated_at?escapeHTML(formatTime(r.updated_at)):'—'}</div></div><div class="location-qty">${Number(r.quantity||0)} ${escapeHTML(unit)}</div><button class="secondary-btn matrix-prefill-btn" data-inventory-id="${r.id}">Use / Update</button></div>`).join('')}</div><div class="matrix-use-row"><div class="wide"><label>Selected Location</label><select id="matrixUseLocation-${m.id}">${inv.map(r=>`<option value="${r.id}">${escapeHTML(storagePath(r.location_id))} — ${Number(r.quantity||0)} ${escapeHTML(unit)}</option>`).join('')}</select></div><div><label>Use Qty</label><input id="matrixUseQty-${m.id}" type="number" min="0.000001" step="any" placeholder="0"></div><div><label>Updated By</label><input id="matrixUseUser-${m.id}" type="text" placeholder="Your name"></div><div class="wide"><label>Note</label><input id="matrixUseNote-${m.id}" type="text" placeholder="Optional"></div><button class="primary-btn matrix-use-btn" data-matrix-id="${m.id}">Use Matrix</button></div>`; }
-  function bindMatrixActionButtons(){ document.querySelectorAll('.matrix-prefill-btn').forEach(b=>b.onclick=e=>{e.stopPropagation();prefillMatrixUse(b.dataset.inventoryId)}); document.querySelectorAll('.matrix-use-btn').forEach(b=>b.onclick=e=>{e.stopPropagation();useMatrix(b.dataset.matrixId)}); }
-  function prefillMatrixUse(inventoryId){ const row=matrixInventory.find(x=>String(x.id)===String(inventoryId)); if(!row)return; expandedMatrices.add(String(row.matrix_id)); renderMatrices(); bindMatrixActionButtons(); setTimeout(()=>{const el=$(`matrixUseLocation-${row.matrix_id}`); if(el)el.value=String(inventoryId);},0); }
-  async function useMatrix(matrixId){ const invId=Number($(`matrixUseLocation-${matrixId}`)?.value), qty=Number($(`matrixUseQty-${matrixId}`)?.value), user=matrixValue($(`matrixUseUser-${matrixId}`)?.value), note=matrixValue($(`matrixUseNote-${matrixId}`)?.value); if(!invId||!Number.isFinite(qty)||qty<=0)return alert('Enter a valid quantity to use.'); if(!user)return alert('Please enter your name.'); const {data:fresh,error:e}=await supabaseClient.from('matrix_inventory').select('*').eq('id',invId).single(); if(e||!fresh)return alert('Could not load the latest matrix inventory.'); const old=Number(fresh.quantity||0), unit=matrixUnit(matrixId); if(qty>old)return alert(`Only ${old} ${unit} are available at this location.`); const next=old-qty; const now=new Date().toISOString(); const {error:u}=await supabaseClient.from('matrix_inventory').update({quantity:next,updated_by:user,updated_at:now}).eq('id',invId); if(u)return alert('Matrix inventory update failed:\n'+u.message); const {error:l}=await supabaseClient.from('matrix_logs').insert({matrix_id:String(matrixId),location_id:Number(fresh.location_id),change_amount:-qty,action_type:'usage',note:note||null,performed_by:user}); if(l)console.error('Matrix log error',l); await refreshAll({preserveForms:true}); alert('Matrix inventory updated successfully.'); }
+  function matrixLocationPanelHTML(m){ const inv=matrixRows(m.id), unit=matrixUnit(m.id); if(!inv.length)return '<p class="helper">No registered storage locations.</p>'; return `<div class="location-list">${inv.map(r=>`<div class="location-card"><div><div class="location-path">📍 ${escapeHTML(storagePath(r.location_id))}</div><div class="muted">Last updated ${r.updated_at?escapeHTML(formatTime(r.updated_at)):'—'}</div></div><div class="location-qty">${Number(r.quantity||0)} ${escapeHTML(unit)}</div></div>`).join('')}</div><p class="helper" style="margin-top:10px">To change inventory, go to <strong>Advanced Update → Biological Matrix</strong>.</p>`; }
+  function bindMatrixActionButtons(){}
+  function prefillMatrixUse(){}
 
   function storageOptionsHTML(selected=''){ return '<option value="">Select storage location…</option>'+storageLocations.map(x=>`<option value="${x.id}" ${String(x.id)===String(selected)?'selected':''}>${escapeHTML(storagePath(x.id))} (${escapeHTML(x.location_type||'Location')})</option>`).join(''); }
   function renderStorageParentOptions(){ const el=$("storageParent"); if(!el)return; const old=el.value; el.innerHTML='<option value="">None — top level</option>'+storageLocations.map(x=>`<option value="${x.id}">${escapeHTML(storagePath(x.id))}</option>`).join(''); if([...el.options].some(o=>o.value===old))el.value=old; }
@@ -981,9 +993,121 @@
   function refreshMatrixLocationSelects(){ document.querySelectorAll('.matrix-entry-location').forEach(el=>{const old=el.value; el.innerHTML=storageOptionsHTML(old); if([...el.options].some(o=>o.value===old))el.value=old;}); }
   async function addMatrixSample(){ const payload={species:matrixValue($("matrixSpecies")?.value),matrix_type:matrixValue($("matrixType")?.value),strain:matrixValue($("matrixStrain")?.value)||null,sex:matrixValue($("matrixSex")?.value)||null,unit:matrixValue($("matrixUnit")?.value),created_by:null}; if(!payload.species||!payload.matrix_type||!payload.unit)return alert('Please enter Species, Matrix Type, and Unit.'); const entries=[...document.querySelectorAll('#matrixLocationEntries .location-entry')].map(el=>({location_id:Number(el.querySelector('.matrix-entry-location').value),quantity:Number(el.querySelector('.matrix-entry-quantity').value)})); if(!entries.length||entries.some(x=>!x.location_id||!Number.isFinite(x.quantity)||x.quantity<0))return alert('Please complete every storage location and quantity.'); if(new Set(entries.map(x=>x.location_id)).size!==entries.length)return alert('The same storage location cannot be added twice for one matrix.'); const btn=$("matrixAddBtn"); if(btn){btn.disabled=true;btn.textContent='Adding…';} const {data:m,error}=await supabaseClient.from('matrix_samples').insert(payload).select().single(); if(error){if(btn){btn.disabled=false;btn.textContent='🧫 Add Matrix & Register Inventory';}return alert('Could not add matrix: '+error.message);} const now=new Date().toISOString(); const inventoryRows=entries.map(x=>({matrix_id:m.id,location_id:x.location_id,quantity:x.quantity,updated_at:now})); const {error:ie}=await supabaseClient.from('matrix_inventory').insert(inventoryRows); if(ie){if(btn){btn.disabled=false;btn.textContent='🧫 Add Matrix & Register Inventory';}return alert('Matrix was created, but storage registration failed: '+ie.message);} for(const x of entries){await supabaseClient.from('matrix_logs').insert({matrix_id:m.id,location_id:x.location_id,change_amount:x.quantity,action_type:'register',note:'Initial registration',performed_by:null});} if(btn){btn.disabled=false;btn.textContent='🧫 Add Matrix & Register Inventory';} ['matrixSpecies','matrixType','matrixStrain','matrixSex'].forEach(id=>{if($(id))$(id).value='';}); if($("matrixUnit"))$("matrixUnit").value='tube'; resetMatrixLocationEntries(); await refreshAll({preserveForms:true}); alert('Matrix and storage inventory registered successfully.'); }
 
-  function renderStorageTree(){ const box=$("storageTree"); if(!box)return; const roots=storageLocations.filter(x=>!x.parent_id); const nodeHTML=node=>{const kids=storageLocations.filter(x=>Number(x.parent_id)===Number(node.id)); return `<div class="storage-node"><div class="storage-node-head"><button class="soft-btn" style="text-align:left;flex:1" onclick="selectStorageNode(${node.id})"><span class="storage-node-title">${escapeHTML(node.name)}</span> <span class="storage-badge">${escapeHTML(node.location_type||'Location')}</span></button></div>${kids.length?`<div class="storage-children">${kids.map(nodeHTML).join('')}</div>`:''}</div>`}; box.innerHTML=roots.length?roots.map(nodeHTML).join(''):'<div class="muted">No storage locations yet. Add them from Advanced Update.</div>'; }
-  function selectStorageNode(id){ selectedStorageNodeId=Number(id); renderStorageContents(); }
-  function renderStorageContents(){ const box=$("storageContents"),title=$("storageContentsTitle"); if(!box)return; let ids=null; if(selectedStorageNodeId){ids=descendantStorageIds(selectedStorageNodeId); const n=storageById(selectedStorageNodeId); if(title)title.textContent=n?storagePath(n.id):'Storage';} else if(title)title.textContent='All Storage'; const rows=matrixInventory.filter(x=>!ids||ids.has(Number(x.location_id))); if(!rows.length){box.innerHTML='<div class="muted">No matrix inventory is registered under this location.</div>';return;} box.innerHTML=rows.map(r=>{const m=matrixSamples.find(x=>String(x.id)===String(r.matrix_id));return `<div class="storage-result-card"><strong>${escapeHTML(m?.species||'')} ${escapeHTML(m?.matrix_type||'Matrix')}</strong> · ${Number(r.quantity||0)} ${escapeHTML(matrixUnit(r.matrix_id))}<div class="storage-path-line">📍 ${escapeHTML(storagePath(r.location_id))}</div></div>`}).join(''); }
+  function storageChildren(parentId){
+    return storageLocations
+      .filter(x => parentId == null ? !x.parent_id : Number(x.parent_id) === Number(parentId))
+      .sort((a,b) => Number(a.sort_order||0)-Number(b.sort_order||0) || String(a.name||'').localeCompare(String(b.name||''),undefined,{numeric:true}));
+  }
+  function storageType(node){ return String(node?.location_type||'location').trim().toLowerCase(); }
+  function storageIcon(node){
+    const t=storageType(node);
+    if(t.includes('freezer')||t.includes('refrigerator')||t.includes('cold')) return '🧊';
+    if(t.includes('shelf')) return '▤';
+    if(t.includes('rack')) return '▦';
+    if(t.includes('box')||t.includes('bin')||t.includes('drawer')) return '□';
+    return '📍';
+  }
+  function storageAncestors(id){
+    const arr=[]; let n=storageById(id), seen=new Set();
+    while(n && !seen.has(Number(n.id))){ seen.add(Number(n.id)); arr.unshift(n); n=n.parent_id?storageById(n.parent_id):null; }
+    return arr;
+  }
+  function storageGoRoot(){ selectedStorageNodeId=null; renderStorageTree(); renderStorageContents(); }
+  function storageGoBack(){
+    if(!selectedStorageNodeId) return;
+    const n=storageById(selectedStorageNodeId);
+    selectedStorageNodeId=n?.parent_id ? Number(n.parent_id) : null;
+    renderStorageTree(); renderStorageContents();
+  }
+  function selectStorageNode(id){ selectedStorageNodeId=Number(id); renderStorageTree(); renderStorageContents(); }
+
+  function rackLetter(name,index){
+    const m=String(name||'').match(/\b([A-Z])\b/i);
+    return m ? m[1].toUpperCase() : String.fromCharCode(65+index);
+  }
+  function shelfNumber(name,index){
+    const m=String(name||'').match(/\d+/);
+    return m ? m[0] : String(index+1);
+  }
+
+  function renderFreezerVisual(freezer){
+    const host=$("storageVisual"); if(!host)return;
+    if(!freezer || !storageType(freezer).includes('freezer')){ host.innerHTML=''; return; }
+    const shelves=storageChildren(freezer.id).filter(x=>storageType(x).includes('shelf'));
+    if(!shelves.length){ host.innerHTML=''; return; }
+    const maxRacks=Math.max(1,...shelves.map(s=>storageChildren(s.id).filter(x=>storageType(x).includes('rack')).length));
+    host.innerHTML=`<div class="freezer-visual"><div class="freezer-cabinet"><div class="freezer-inner">${
+      shelves.map((s,si)=>{
+        const racks=storageChildren(s.id).filter(x=>storageType(x).includes('rack'));
+        return `<div class="freezer-shelf-row"><div class="freezer-shelf-label">Shelf ${escapeHTML(shelfNumber(s.name,si))}</div><div class="freezer-rack-row" style="grid-template-columns:repeat(${Math.max(maxRacks,1)},1fr)">${
+          racks.length?racks.map((r,ri)=>`<button class="freezer-rack-cell" type="button" onclick="selectStorageNode(${r.id})">${escapeHTML(rackLetter(r.name,ri))}</button>`).join(''):`<div class="freezer-rack-cell" style="grid-column:1/-1;cursor:default;color:#91a3af">No racks</div>`
+        }</div></div>`;
+      }).join('')
+    }</div></div></div>`;
+  }
+
+  function renderStorageGuide(){
+    const host=$("storageGuide"); if(!host)return;
+    let freezer=null;
+    if(selectedStorageNodeId){
+      freezer=storageAncestors(selectedStorageNodeId).find(x=>storageType(x).includes('freezer'))||null;
+    }
+    if(!freezer) freezer=storageChildren(null).find(x=>storageType(x).includes('freezer'))||null;
+    if(!freezer){ host.innerHTML='<div class="muted">Add a freezer to generate the reference map.</div>'; return; }
+    const shelves=storageChildren(freezer.id).filter(x=>storageType(x).includes('shelf'));
+    const rackSets=shelves.map(s=>storageChildren(s.id).filter(x=>storageType(x).includes('rack')));
+    const maxRacks=Math.max(0,...rackSets.map(x=>x.length));
+    if(!shelves.length || !maxRacks){ host.innerHTML='<div class="muted">Add shelves and racks to generate the naming guide.</div>'; return; }
+    const letters=Array.from({length:maxRacks},(_,i)=>rackLetter(rackSets.find(x=>x[i])?.[i]?.name,i));
+    host.innerHTML=`<div class="guide-axis" style="text-align:center">LEFT → RIGHT</div>
+      <div class="guide-row" style="grid-template-columns:32px repeat(${maxRacks},1fr)"><span></span>${letters.map(x=>`<span class="guide-axis" style="text-align:center">${escapeHTML(x)}</span>`).join('')}</div>
+      <div class="guide-grid">${shelves.map((s,si)=>`<div class="guide-row" style="grid-template-columns:32px repeat(${maxRacks},1fr)"><span class="guide-axis">${escapeHTML(shelfNumber(s.name,si))}</span>${letters.map((_,ri)=>`<span class="guide-cell">${rackSets[si]?.[ri]?'□':'—'}</span>`).join('')}</div>`).join('')}</div>
+      <div class="guide-axis">TOP (1) ↓ numbers increase toward BOTTOM</div>`;
+  }
+
+  function renderStorageTree(){
+    const grid=$("storageLevelGrid"), crumbs=$("storageBreadcrumbs"), title=$("storageStageTitle"), eye=$("storageStageEyebrow"), helper=$("storageStageHelper"), back=$("storageBackBtn");
+    if(!grid)return;
+    const current=selectedStorageNodeId?storageById(selectedStorageNodeId):null;
+    const children=storageChildren(current?current.id:null);
+    if(crumbs){
+      const chain=current?storageAncestors(current.id):[];
+      crumbs.innerHTML=`<button onclick="storageGoRoot()">⌂ Freezers</button>${chain.map(n=>`<span>›</span><button onclick="selectStorageNode(${n.id})">${escapeHTML(n.name)}</button>`).join('')}`;
+    }
+    if(back) back.style.display=current?'inline-block':'none';
+    if(!current){
+      if(eye)eye.textContent='Freezers';
+      if(title)title.textContent=`Freezers (${children.length})`;
+      if(helper)helper.textContent='Select a freezer to open it. New top-level freezers added in Supabase appear here automatically.';
+    }else{
+      if(eye)eye.textContent=(current.location_type||'Storage')+' level';
+      if(title)title.textContent=current.name;
+      if(helper)helper.textContent=children.length?`Select one of the ${children.length} locations inside ${current.name}.`:`This is the end of this storage branch.`;
+    }
+    if(current && helper){ const direct=children.length, ids=descendantStorageIds(current.id), qty=matrixInventory.filter(x=>ids.has(Number(x.location_id))).reduce((a,b)=>a+Number(b.quantity||0),0); helper.innerHTML=`<span class="level-pill">${direct} direct location${direct===1?'':'s'}</span> <span class="level-pill">${qty} total units</span>`; }
+    const freezerForVisual = current && storageType(current).includes('freezer') ? current : null;
+    renderFreezerVisual(freezerForVisual);
+    grid.innerHTML=children.length?children.map((n,i)=>{
+      const kids=storageChildren(n.id);
+      const ids=descendantStorageIds(n.id);
+      const qty=matrixInventory.filter(x=>ids.has(Number(x.location_id))).reduce((s,x)=>s+Number(x.quantity||0),0);
+      return `<button class="storage-level-card" type="button" onclick="selectStorageNode(${n.id})"><div class="storage-card-icon">${storageIcon(n)}</div><h3>${escapeHTML(n.name)}</h3><p>${escapeHTML(n.location_type||'Location')} · ${kids.length} child location${kids.length===1?'':'s'} · ${qty} total units</p></button>`;
+    }).join(''):`<div class="storage-empty" style="grid-column:1/-1"><div><div style="font-size:34px">📦</div><strong>No child locations</strong><div class="helper">Inventory stored directly here is shown in Contents.</div></div></div>`;
+    renderStorageGuide();
+  }
+
+  function renderStorageContents(){
+    const box=$("storageContents"),title=$("storageContentsTitle"); if(!box)return;
+    let ids=null;
+    if(selectedStorageNodeId){
+      ids=descendantStorageIds(selectedStorageNodeId);
+      const n=storageById(selectedStorageNodeId);
+      if(title)title.textContent=n?n.name:'Storage';
+    } else if(title) title.textContent='All Storage';
+    const rows=matrixInventory.filter(x=>!ids||ids.has(Number(x.location_id)));
+    if(!rows.length){box.innerHTML='<div class="muted">No matrix inventory is registered under this location.</div>';return;}
+    box.innerHTML=rows.map(r=>{const m=matrixSamples.find(x=>String(x.id)===String(r.matrix_id));return `<div class="storage-result-card"><strong>${escapeHTML(m?.species||'')} ${escapeHTML(m?.matrix_type||'Matrix')}</strong> · ${Number(r.quantity||0)} ${escapeHTML(matrixUnit(r.matrix_id))}<div class="storage-path-line">📍 ${escapeHTML(storagePath(r.location_id))}</div></div>`}).join('');
+  }
 
 
   function formatTime(value) {
@@ -1331,6 +1455,18 @@
   }
   function updateNewStockLotDropdown(){ const el=$("newStockLotChoice"); if(!el||!$("reagentSelect"))return; const old=el.value; const rs=reagentLots(Number($("reagentSelect").value)); el.innerHTML='<option value="NEW">＋ Enter a new lot</option>'+rs.map(l=>`<option value="${l.id}">${escapeHTML(l.lot_number)} — Exp ${formatDate(l.expiration_date)} — ${l.unopened_count} unopened</option>`).join(''); if(old==='NEW'||rs.some(x=>String(x.id)===String(old)))el.value=old; else el.value='NEW'; updateNewStockLotMode(); }
   function updateNewStockLotMode(){ const choice=$("newStockLotChoice")?.value||'NEW',isNew=choice==='NEW'; if($("newStockNewLotFields"))$("newStockNewLotFields").style.display=isNew?'grid':'none'; if($("existingNewStockLot"))$("existingNewStockLot").style.display=isNew?'none':'grid'; if(!isNew){const lot=lots.find(x=>String(x.id)===String(choice)); if(lot){$("existingLotNumberDisplay").value=lot.lot_number||''; $("existingExpirationDisplay").value=lot.expiration_date||'';}} }
+  let advancedUpdateType=null, selectedExistingMatrixId=null;
+  function chooseUpdateType(type){ advancedUpdateType=type; ['reagent','matrix'].forEach(t=>{ $(`choose${t[0].toUpperCase()+t.slice(1)}`)?.classList.toggle('active',type===t); $(`${t}Workspace`)?.classList.toggle('active',type===t); }); if(type==='reagent'){updateReagentDropdown();updateAdminForm();} if(type==='matrix'){renderMatrixSuggestions();} }
+  function showWorkspacePanel(type,btn){ const attr=type==='matrix'?'mpanel':'rpanel'; const workspace=$(type+'Workspace'); workspace?.querySelectorAll('.workspace-tab').forEach(x=>x.classList.remove('active')); workspace?.querySelectorAll('.workspace-panel').forEach(x=>x.classList.remove('active')); btn.classList.add('active'); $(btn.dataset[attr])?.classList.add('active'); }
+  function matrixSearchText(m){ return [m.species,m.matrix_type,m.strain,m.sex,matrixUnit(m.id),...matrixRows(m.id).map(r=>storagePath(r.location_id))].map(matrixValue).join(' ').toLowerCase(); }
+  function matrixDisplayName(m){ return [m.species,m.matrix_type,m.strain,m.sex].map(matrixValue).filter(Boolean).join(' · '); }
+  function renderMatrixSuggestions(){ const input=$('existingMatrixSearch'), box=$('matrixSuggestions'); if(!input||!box)return; const q=input.value.trim().toLowerCase(); const hits=matrixSamples.filter(m=>!q||matrixSearchText(m).includes(q)).slice(0,12); box.innerHTML=hits.length?hits.map(m=>`<div class="matrix-suggestion" onmousedown="event.preventDefault();selectExistingMatrix('${m.id}')"><strong>${escapeHTML(matrixDisplayName(m))}</strong><small>${matrixTotal(m.id)} ${escapeHTML(matrixUnit(m.id))} · ${matrixRows(m.id).length} location${matrixRows(m.id).length===1?'':'s'}</small></div>`).join(''):'<div class="matrix-suggestion"><small>No matching sample.</small></div>'; box.style.display='block'; }
+  function selectExistingMatrix(id){ selectedExistingMatrixId=String(id); const m=matrixSamples.find(x=>String(x.id)===String(id)); if(!m)return; $('existingMatrixSearch').value=matrixDisplayName(m); $('matrixSuggestions').style.display='none'; const card=$('selectedMatrixCard'); card.classList.add('show'); card.innerHTML=`<strong>${escapeHTML(matrixDisplayName(m))}</strong><div class="helper">${matrixTotal(m.id)} ${escapeHTML(matrixUnit(m.id))} total · ${matrixRows(m.id).length} location${matrixRows(m.id).length===1?'':'s'}</div>${matrixRows(m.id).map(r=>`<div class="storage-path-line">📍 ${escapeHTML(storagePath(r.location_id))} — ${Number(r.quantity||0)} ${escapeHTML(matrixUnit(m.id))}</div>`).join('')}`; $('matrixAdjustmentForm').style.display='block'; renderMatrixAdjustmentFields(); }
+  function matrixInventoryOptions(m){ return matrixRows(m.id).map(r=>`<option value="${r.id}">${escapeHTML(storagePath(r.location_id))} — ${Number(r.quantity||0)} ${escapeHTML(matrixUnit(m.id))}</option>`).join(''); }
+  function renderMatrixAdjustmentFields(){ const host=$('matrixAdjustmentFields'), m=matrixSamples.find(x=>String(x.id)===String(selectedExistingMatrixId)); if(!host||!m)return; const action=$('matrixAction').value, invOpts=matrixInventoryOptions(m); if(action==='ADD_STOCK') host.innerHTML=`<div class="form-row"><label>Storage Location</label><select id="matrixTargetLocation">${storageOptionsHTML()}</select></div><div class="form-row"><label>Quantity to Add</label><input id="matrixAdjustQty" type="number" min="0.000001" step="any"></div>`; else if(action==='MOVE') host.innerHTML=`<div class="form-row"><label>Move From</label><select id="matrixSourceInventory">${invOpts}</select></div><div class="form-row"><label>Move To</label><select id="matrixTargetLocation">${storageOptionsHTML()}</select></div><div class="form-row"><label>Quantity to Move</label><input id="matrixAdjustQty" type="number" min="0.000001" step="any"></div>`; else if(action==='PHYSICAL_COUNT'||action==='CORRECTION') host.innerHTML=`<div class="form-row"><label>Location</label><select id="matrixSourceInventory">${invOpts}</select></div><div class="form-row"><label>${action==='PHYSICAL_COUNT'?'Actual Quantity':'Correct Final Quantity'}</label><input id="matrixAdjustQty" type="number" min="0" step="any"></div>`; else host.innerHTML=`<div class="form-row"><label>Location</label><select id="matrixSourceInventory">${invOpts}</select></div><div class="form-row"><label>Quantity to ${action==='USE'?'Use':'Discard'}</label><input id="matrixAdjustQty" type="number" min="0.000001" step="any"></div>`; }
+  async function upsertMatrixLocation(matrixId,locationId,delta,user){ const existing=matrixInventory.find(x=>String(x.matrix_id)===String(matrixId)&&Number(x.location_id)===Number(locationId)); const now=new Date().toISOString(); if(existing){const next=Number(existing.quantity||0)+Number(delta); if(next<0)throw new Error('Not enough inventory at this location.'); const {error}=await supabaseClient.from('matrix_inventory').update({quantity:next,updated_by:user,updated_at:now}).eq('id',existing.id); if(error)throw error; return next;} if(delta<0)throw new Error('No inventory exists at this location.'); const {error}=await supabaseClient.from('matrix_inventory').insert({matrix_id:String(matrixId),location_id:Number(locationId),quantity:Number(delta),updated_by:user,updated_at:now}); if(error)throw error; return delta; }
+  async function updateExistingMatrixInventory(){ const m=matrixSamples.find(x=>String(x.id)===String(selectedExistingMatrixId)); if(!m)return alert('Please select an existing matrix.'); const action=$('matrixAction').value, qty=Number($('matrixAdjustQty')?.value), user=matrixValue($('matrixUpdateUser')?.value), note=matrixValue($('matrixUpdateNote')?.value); if(!user)return alert('Please enter your name.'); if(!Number.isFinite(qty)||(action!=='PHYSICAL_COUNT'&&action!=='CORRECTION'&&qty<=0)||((action==='PHYSICAL_COUNT'||action==='CORRECTION')&&qty<0))return alert('Enter a valid quantity.'); try{ const sourceId=Number($('matrixSourceInventory')?.value), source=matrixInventory.find(x=>Number(x.id)===sourceId), targetLoc=Number($('matrixTargetLocation')?.value); if(action==='ADD_STOCK'){if(!targetLoc)return alert('Select a storage location.'); await upsertMatrixLocation(m.id,targetLoc,qty,user); await supabaseClient.from('matrix_logs').insert({matrix_id:m.id,location_id:targetLoc,change_amount:qty,action_type:'restock',note:note||null,performed_by:user});} else if(action==='MOVE'){if(!source||!targetLoc)return alert('Select both source and destination.'); if(Number(source.location_id)===targetLoc)return alert('Source and destination must be different.'); if(qty>Number(source.quantity||0))return alert('Not enough inventory to move.'); await upsertMatrixLocation(m.id,source.location_id,-qty,user); await upsertMatrixLocation(m.id,targetLoc,qty,user); await supabaseClient.from('matrix_logs').insert([{matrix_id:m.id,location_id:Number(source.location_id),change_amount:-qty,action_type:'move_out',note:note||null,performed_by:user},{matrix_id:m.id,location_id:targetLoc,change_amount:qty,action_type:'move_in',note:note||null,performed_by:user}]);} else {if(!source)return alert('Select a location.'); const old=Number(source.quantity||0); let delta; if(action==='PHYSICAL_COUNT'||action==='CORRECTION')delta=qty-old; else delta=-qty; if(old+delta<0)return alert(`Only ${old} ${matrixUnit(m.id)} are available at this location.`); await upsertMatrixLocation(m.id,source.location_id,delta,user); await supabaseClient.from('matrix_logs').insert({matrix_id:m.id,location_id:Number(source.location_id),change_amount:delta,action_type:action==='USE'?'usage':action==='DISCARD'?'discard':action==='PHYSICAL_COUNT'?'physical_count':'correction',note:note||null,performed_by:user});} await refreshAll({preserveForms:false}); selectExistingMatrix(m.id); $('matrixAdjustQty').value=''; alert('Matrix inventory updated successfully.'); }catch(e){alert('Matrix inventory update failed:\n'+e.message);} }
+
   function captureAdvancedFormState(){ const ids=['reagentSelect','actionSelect','lotSelect','newStockLotChoice','newLotNumber','newExpirationDate','newStockQuantity','adminQuantity','actualUnopened','correctUnopened','updatedBy','note']; const out={}; ids.forEach(id=>{if($(id))out[id]=$(id).value;}); return out; }
   function restoreAdvancedFormState(state){ if(!state)return; if($("reagentSelect")&&[...$("reagentSelect").options].some(o=>o.value===state.reagentSelect))$("reagentSelect").value=state.reagentSelect; updateLotDropdown(); if($("actionSelect")&&state.actionSelect)$("actionSelect").value=state.actionSelect; updateAdminForm(); ['lotSelect','newStockLotChoice','newLotNumber','newExpirationDate','newStockQuantity','adminQuantity','actualUnopened','correctUnopened','updatedBy','note'].forEach(id=>{const el=$(id); if(!el||state[id]==null)return; if(el.tagName==='SELECT'){if([...el.options].some(o=>o.value===state[id]))el.value=state[id];}else el.value=state[id];}); updateNewStockLotMode(); }
 
@@ -1491,7 +1627,7 @@
   resetMatrixLocationEntries();
   renderActiveView(location.hash.replace("#","") || "home");
   refreshAll();
-  setInterval(()=>{ if(!hasPendingQuickChanges()) refreshAll(); },5000);
+  setInterval(()=>{ const a=document.activeElement; const editing=a&&['INPUT','SELECT','TEXTAREA'].includes(a.tagName); if(!hasPendingQuickChanges()&&!editing) refreshAll(); },5000);
 </script>
 </body>
 </html>
