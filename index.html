@@ -443,6 +443,33 @@
     .classification { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 14px; }
     .chip { border-radius: 999px; padding: 7px 10px; background: #eef7fb; border: 1px solid #d3e8f2; color: #52738b; font-size: 12px; }
 
+
+    /* ---------- Scalable Matrix Storage ---------- */
+    .matrix-summary-row { cursor:pointer; }
+    .matrix-summary-row td:first-child { color:var(--blue-dark); font-weight:800; }
+    .matrix-location-row td { background:#fbfdff !important; padding:0; }
+    .matrix-location-panel { padding:16px; text-align:left; }
+    .location-list { display:grid; gap:9px; }
+    .location-card { display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:12px; align-items:center; padding:12px 14px; border:1px solid #dce9f1; border-radius:12px; background:#fff; }
+    .location-path { font-weight:750; color:#315b79; }
+    .location-qty { font-size:17px; font-weight:850; white-space:nowrap; }
+    .matrix-use-row { display:grid; grid-template-columns:1fr 110px 140px 1fr auto; gap:9px; align-items:end; margin-top:12px; padding-top:12px; border-top:1px solid #e2edf3; }
+    .storage-tree { display:grid; gap:8px; }
+    .storage-node { border:1px solid #dce8f0; border-radius:12px; background:#fff; padding:11px 13px; }
+    .storage-node-head { display:flex; gap:10px; align-items:center; justify-content:space-between; }
+    .storage-node-title { font-weight:800; color:#315b79; }
+    .storage-children { margin:9px 0 0 18px; display:grid; gap:7px; }
+    .storage-badge { font-size:10px; border-radius:999px; padding:4px 7px; background:#eef6fb; color:#58768c; border:1px solid #d7e7f0; }
+    .location-entry { padding:13px; border:1px solid #dce8f0; border-radius:12px; background:#fbfdff; margin-bottom:10px; }
+    .location-entry-head { display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:10px; }
+    .storage-map-grid { display:grid; grid-template-columns:340px minmax(0,1fr); gap:16px; align-items:start; }
+    .storage-result { display:grid; gap:9px; }
+    .storage-result-card { padding:13px 15px; border:1px solid #dce8f0; border-radius:12px; background:#fff; }
+    .storage-path-line { color:#5a7488; font-size:12px; margin-top:4px; }
+    .matrix-log-table { margin-top:16px; }
+    @media (max-width:1100px){ .storage-map-grid{grid-template-columns:1fr}.matrix-use-row{grid-template-columns:1fr 1fr}.matrix-use-row .wide{grid-column:1/-1} }
+    @media (max-width:760px){ .location-card,.matrix-use-row{grid-template-columns:1fr}.storage-map-grid{grid-template-columns:1fr} }
+
     /* ---------- Advanced ---------- */
     .advanced-intro { margin-bottom: 16px; }
     .advanced-grid { display: grid; grid-template-columns: .86fr 1.14fr; gap: 16px; align-items: start; }
@@ -514,6 +541,7 @@
       <button class="nav-btn" data-view="home"><span class="nav-icon">⌂</span>Home</button>
       <button class="nav-btn" data-view="buffers"><span class="nav-icon">⚗</span>Common Buffers</button>
       <button class="nav-btn" data-view="matrices"><span class="nav-icon">🧬</span>Biological Matrices</button>
+      <button class="nav-btn" data-view="storage"><span class="nav-icon">🧊</span>Storage Map</button>
       <button class="nav-btn" data-view="advanced"><span class="nav-icon">⚙</span>Advanced Update</button>
     </nav>
 
@@ -717,20 +745,33 @@
     <!-- BIOLOGICAL MATRICES -->
     <section id="view-matrices" class="view">
       <section class="page-banner card">
-        <div><div class="eyebrow">Biological sample inventory</div><h1>🧬 Biological Matrices</h1><p>Search and manage matrix inventory by Species → Matrix → Strain.</p></div>
+        <div><div class="eyebrow">Biological sample inventory</div><h1>🧬 Biological Matrices</h1><p>Find a matrix first, then see every storage location and the quantity available at each location.</p></div>
       </section>
-
       <section class="card card-pad">
-        <div class="section-head"><div><h2 class="section-title">Search & Filter</h2><p class="helper">Filter inventory without repeatedly expanding nested categories. New matrix records are added from Advanced Update.</p></div><button class="primary-btn" onclick="goToView('advanced')">＋ Add Matrix</button></div>
+        <div class="section-head"><div><h2 class="section-title">Search & Filter</h2><p class="helper">One matrix record can be distributed across multiple freezers, shelves, racks, boxes, or other storage locations.</p></div><button class="primary-btn" onclick="goToView('advanced')">＋ Add Matrix</button></div>
         <div class="matrix-filter-grid">
-          <input id="matrixSearch" type="search" placeholder="Search species, matrix, strain, sex, location…">
+          <input id="matrixSearch" type="search" placeholder="Search species, matrix, strain, sex, lot, or storage…">
           <select id="matrixSpeciesFilter"><option value="">Species — All</option></select>
           <select id="matrixTypeFilter"><option value="">Matrix — All</option></select>
           <select id="matrixStrainFilter"><option value="">Strain — All</option></select>
         </div>
-
         <div id="matrixInventory"></div>
       </section>
+    </section>
+
+    <!-- STORAGE MAP -->
+    <section id="view-storage" class="view">
+      <section class="page-banner card"><div><div class="eyebrow">Scalable location hierarchy</div><h1>🧊 Storage Map</h1><p>Browse storage from the location side: freezer, refrigerator, shelf, rack, drawer, box, bin, or any future hierarchy.</p></div></section>
+      <div class="storage-map-grid">
+        <section class="card card-pad">
+          <div class="section-head"><div><h2 class="section-title" style="font-size:24px">Storage Locations</h2><p class="helper">Select any node to see matrices stored under it.</p></div></div>
+          <div id="storageTree" class="storage-tree"></div>
+        </section>
+        <section class="card card-pad">
+          <div class="section-head"><div><div class="eyebrow">Contents</div><h2 id="storageContentsTitle" class="section-title" style="font-size:24px">All Storage</h2></div></div>
+          <div id="storageContents" class="storage-result"></div>
+        </section>
+      </div>
     </section>
 
     <!-- ADVANCED UPDATE -->
@@ -763,21 +804,32 @@
             </section>
 
             <section class="card card-pad">
-              <div class="section-head"><div><div class="eyebrow">Biological Matrices · Inventory record</div><h2 class="section-title" style="font-size:24px">＋ Add New Matrix</h2><p class="helper">Add a biological matrix inventory record using the information currently tracked by the system. Species and Matrix Type are required; strain, sex, and storage location can be added when applicable.</p></div></div>
+              <div class="section-head"><div><div class="eyebrow">Biological Matrices · Matrix + storage registration</div><h2 class="section-title" style="font-size:24px">＋ Add New Matrix</h2><p class="helper">Create the matrix once, then register one or more storage locations in the same submission.</p></div></div>
               <div class="form-row"><label for="matrixSpecies">Species *</label><input id="matrixSpecies" type="text" placeholder="Mouse, Cyno, Rat…"></div>
               <div class="form-row"><label for="matrixType">Matrix Type *</label><input id="matrixType" type="text" placeholder="Serum, Plasma…"></div>
               <div class="form-grid">
                 <div class="form-row"><label for="matrixStrain">Strain</label><input id="matrixStrain" type="text" placeholder="CD-1, BALB/c, C57BL/6…"></div>
                 <div class="form-row"><label for="matrixSex">Sex</label><input id="matrixSex" type="text" placeholder="Male, Female, Mixed…"></div>
               </div>
-              <div class="form-grid">
-                <div class="form-row"><label for="matrixQuantity">Quantity *</label><input id="matrixQuantity" type="number" min="0" step="any" value="0"></div>
-                <div class="form-row"><label for="matrixUnit">Unit *</label><input id="matrixUnit" type="text" placeholder="mL, aliquots, bottles…"></div>
+              <div class="form-row"><label for="matrixUnit">Unit *</label><input id="matrixUnit" type="text" placeholder="tube, mL, aliquot…" value="tube"></div>
+              <div class="sub-panel">
+                <div class="section-head" style="margin-bottom:10px"><div><strong>Storage & Quantity</strong><div class="helper">Add every location that receives part of this matrix.</div></div></div>
+                <div id="matrixLocationEntries"></div>
+                <button class="secondary-btn" type="button" onclick="addMatrixLocationEntry()">＋ Add Another Location</button>
               </div>
-              <div class="form-row"><label for="matrixLocation">Storage Location</label><input id="matrixLocation" type="text" placeholder="Freezer / refrigerator / room…"></div>
-              <button id="matrixAddBtn" class="primary-btn" onclick="addMatrixSample()">🧫 Add Matrix</button>
+              <button id="matrixAddBtn" class="primary-btn" onclick="addMatrixSample()">🧫 Add Matrix & Register Inventory</button>
             </section>
           </div>
+          <section class="card card-pad" style="margin-top:16px">
+            <div class="section-head"><div><div class="eyebrow">Storage hierarchy</div><h2 class="section-title" style="font-size:24px">🧊 Manage Storage</h2><p class="helper">Add a freezer, refrigerator, shelf, rack, drawer, box, bin, or any future location. Parent locations create the hierarchy.</p></div></div>
+            <div class="form-grid">
+              <div class="form-row"><label for="storageName">Name *</label><input id="storageName" type="text" placeholder="Example: B42 -80°C Freezer 3"></div>
+              <div class="form-row"><label for="storageType">Type *</label><input id="storageType" type="text" list="storageTypeOptions" placeholder="Freezer, Shelf, Rack, Box…"><datalist id="storageTypeOptions"><option>Freezer</option><option>Refrigerator</option><option>Cold Room</option><option>Cabinet</option><option>Shelf</option><option>Rack</option><option>Drawer</option><option>Box</option><option>Bin</option></datalist></div>
+            </div>
+            <div class="form-row"><label for="storageParent">Parent Location</label><select id="storageParent"><option value="">None — top level</option></select></div>
+            <div class="form-row"><label for="storageDescription">Description</label><input id="storageDescription" type="text" placeholder="Optional room, temperature, or note"></div>
+            <button class="primary-btn" type="button" onclick="addStorageLocation()">＋ Add Storage Location</button>
+          </section>
         </div>
 
         <section class="card card-pad">
@@ -786,11 +838,16 @@
           <div class="form-row"><label for="actionSelect">Action</label><select id="actionSelect" onchange="updateAdminForm()"><option value="NEW_STOCK">New Stock</option><option value="EXPIRED">Expired / Discard Unopened Bottle</option><option value="PHYSICAL_COUNT">Physical Count</option><option value="INPUT_ERROR">Input Error Correction</option></select></div>
 
           <div id="newStockArea" class="sub-panel">
-            <div class="form-grid">
-              <div class="form-row"><label for="newLotNumber">Lot Number</label><input id="newLotNumber" type="text" placeholder="Example: 1123"></div>
+            <div class="form-row"><label for="newStockLotChoice">Lot</label><select id="newStockLotChoice" onchange="updateNewStockLotMode()"></select></div>
+            <div id="existingNewStockLot" class="form-grid" style="display:none">
+              <div class="form-row"><label>Selected Lot Number</label><input id="existingLotNumberDisplay" type="text" readonly></div>
+              <div class="form-row"><label>Expiration Date</label><input id="existingExpirationDisplay" type="date" readonly></div>
+            </div>
+            <div id="newStockNewLotFields" class="form-grid">
+              <div class="form-row"><label for="newLotNumber">New Lot Number</label><input id="newLotNumber" type="text" placeholder="Example: 1123"></div>
               <div class="form-row"><label for="newExpirationDate">Expiration Date</label><input id="newExpirationDate" type="date"></div>
             </div>
-            <div class="form-row"><label for="newStockQuantity">Quantity</label><input id="newStockQuantity" type="number" min="1" step="1" value="1" placeholder="Enter quantity"></div>
+            <div class="form-row"><label for="newStockQuantity">Quantity Received</label><input id="newStockQuantity" type="number" min="1" step="1" value="1" placeholder="Enter quantity"></div>
           </div>
 
           <div id="existingLotArea" class="sub-panel" style="display:none"><div class="form-row"><label for="lotSelect">Lot</label><select id="lotSelect"></select></div></div>
@@ -812,23 +869,17 @@
 
     <!-- LOGS -->
     <section id="view-logs" class="view">
-      <section class="page-banner card"><div><div class="eyebrow">Analytics + history</div><h1>▥ Logs & Usage</h1><p>Understand how routine buffer usage changes over time, then review the detailed activity history.</p></div></section>
-
+      <section class="page-banner card"><div><div class="eyebrow">Analytics + history</div><h1>▥ Logs & Usage</h1><p>Buffer and biological-matrix usage are shown separately and aggregated by week.</p></div></section>
       <section class="card card-pad" style="margin-bottom:16px">
-        <div class="section-head"><div><div class="eyebrow">OPEN_BOTTLE events only</div><h2 class="section-title">📊 Buffer Usage Trend</h2><p class="helper">Expired, discarded, physical count, input correction, and new stock events are excluded from this chart.</p></div></div>
-        <div class="usage-grid">
-          <div>
-            <div class="range-row"><button class="range-btn" data-range="3">3M</button><button class="range-btn active" data-range="6">6M</button><button class="range-btn" data-range="12">1Y</button><button class="range-btn" data-range="all">All</button></div>
-            <div class="chart-wrap"><canvas id="usageChart"></canvas></div>
-          </div>
-          <aside class="usage-filters"><h4>Select Buffers to Display</h4><div id="usageBufferList" class="usage-checks"></div><button class="secondary-btn" style="width:100%;margin-top:12px" onclick="selectAllUsageBuffers()">Select All</button></aside>
-        </div>
+        <div class="section-head"><div><div class="eyebrow">OPEN_BOTTLE events only · weekly</div><h2 class="section-title">📊 Buffer Usage Trend</h2><p class="helper">Each point is one week. New stock, expired/discard, physical count, and corrections are excluded.</p></div></div>
+        <div class="usage-grid"><div><div class="range-row buffer-range"><button class="range-btn" data-range="3">3M</button><button class="range-btn active" data-range="6">6M</button><button class="range-btn" data-range="12">1Y</button><button class="range-btn" data-range="all">All</button></div><div class="chart-wrap"><canvas id="usageChart"></canvas></div></div><aside class="usage-filters"><h4>Select Buffers to Display</h4><div id="usageBufferList" class="usage-checks"></div><button class="secondary-btn" style="width:100%;margin-top:12px" onclick="selectAllUsageBuffers()">Select All</button></aside></div>
       </section>
-
-      <section class="card card-pad">
-        <div class="section-head"><div><div class="eyebrow">Database history</div><h2 class="section-title">Inventory Logs</h2></div></div>
-        <div class="table-wrapper"><table><thead><tr><th>TIME</th><th>USER</th><th>CODE</th><th>NAME</th><th>ACTION</th><th>CHANGE</th><th>NOTE</th></tr></thead><tbody id="logTable"></tbody></table></div>
+      <section class="card card-pad" style="margin-bottom:16px">
+        <div class="section-head"><div><div class="eyebrow">USE events only · weekly</div><h2 class="section-title">🧬 Biological Matrix Consumption Trend</h2><p class="helper">Each point is the quantity consumed during that week. Matrix lines are labeled with their unit.</p></div></div>
+        <div class="usage-grid"><div><div class="range-row matrix-range"><button class="range-btn" data-matrix-range="3">3M</button><button class="range-btn active" data-matrix-range="6">6M</button><button class="range-btn" data-matrix-range="12">1Y</button><button class="range-btn" data-matrix-range="all">All</button></div><div class="chart-wrap"><canvas id="matrixUsageChart"></canvas></div></div><aside class="usage-filters"><h4>Select Matrices to Display</h4><div id="matrixUsageList" class="usage-checks"></div><button class="secondary-btn" style="width:100%;margin-top:12px" onclick="selectAllMatrixUsage()">Select All</button></aside></div>
       </section>
+      <section class="card card-pad" style="margin-bottom:16px"><div class="section-head"><div><div class="eyebrow">Buffer database history</div><h2 class="section-title">Buffer Inventory Logs</h2></div></div><div class="table-wrapper"><table><thead><tr><th>TIME</th><th>USER</th><th>CODE</th><th>NAME</th><th>ACTION</th><th>CHANGE</th><th>NOTE</th></tr></thead><tbody id="logTable"></tbody></table></div></section>
+      <section class="card card-pad"><div class="section-head"><div><div class="eyebrow">Matrix database history</div><h2 class="section-title">Matrix Usage Logs</h2></div></div><div class="table-wrapper"><table><thead><tr><th>TIME</th><th>USER</th><th>MATRIX</th><th>LOCATION</th><th>ACTION</th><th>CHANGE</th><th>NOTE</th></tr></thead><tbody id="matrixLogTable"></tbody></table></div></section>
     </section>
 
     <!-- STANDING ORDERS -->
@@ -865,6 +916,15 @@
   let logs = [];
   let standingOrders = [];
   let matrixSamples = [];
+  let storageLocations = [];
+  let matrixInventory = [];
+  let matrixLogs = [];
+  const expandedMatrices = new Set();
+  const matrixUsageSelected = new Set();
+  let matrixUsageRangeMonths = 6;
+  let matrixUsageChartInstance = null;
+  let selectedStorageNodeId = null;
+  let matrixLocationEntryCounter = 0;
   const pendingUse = {};
   const expandedReagents = new Set();
   const usageSelected = new Set();
@@ -879,47 +939,51 @@
     return div.innerHTML;
   }
 
-  /* ---------- Biological Matrices ---------- */
+  /* ---------- Biological Matrices + scalable storage ---------- */
   function matrixValue(v) { return v == null ? "" : String(v).trim(); }
   function uniqueMatrixValues(key) { return [...new Set(matrixSamples.map(x=>matrixValue(x[key])).filter(Boolean))].sort((a,b)=>a.localeCompare(b)); }
+  function matrixRows(matrixId){ return matrixInventory.filter(x=>String(x.matrix_id)===String(matrixId)); }
+  function matrixTotal(matrixId){ return matrixRows(matrixId).reduce((sum,x)=>sum+Number(x.quantity||0),0); }
+  function matrixUnit(matrixId){ return matrixValue(matrixSamples.find(x=>String(x.id)===String(matrixId))?.unit); }
+  function storageById(id){ return storageLocations.find(x=>Number(x.id)===Number(id)); }
+  function storagePath(id){ const parts=[]; let node=storageById(id); const seen=new Set(); while(node && !seen.has(Number(node.id))){ seen.add(Number(node.id)); parts.unshift(node.name); node=node.parent_id?storageById(node.parent_id):null; } return parts.join(" → ") || "Unassigned"; }
+  function descendantStorageIds(id){ const out=new Set([Number(id)]); let changed=true; while(changed){changed=false; storageLocations.forEach(x=>{if(x.parent_id && out.has(Number(x.parent_id))&&!out.has(Number(x.id))){out.add(Number(x.id));changed=true;}});} return out; }
 
   function renderMatrixFilters() {
     const configs = [["matrixSpeciesFilter","species","Species — All"],["matrixTypeFilter","matrix_type","Matrix — All"],["matrixStrainFilter","strain","Strain — All"]];
-    configs.forEach(([id,key,label])=>{
-      const el=$(id); if(!el) return; const current=el.value;
-      el.innerHTML=`<option value="">${label}</option>`+uniqueMatrixValues(key).map(v=>`<option value="${escapeHTML(v)}">${escapeHTML(v)}</option>`).join("");
-      if ([...el.options].some(o=>o.value===current)) el.value=current;
-    });
+    configs.forEach(([id,key,label])=>{ const el=$(id); if(!el)return; const current=el.value; el.innerHTML=`<option value="">${label}</option>`+uniqueMatrixValues(key).map(v=>`<option value="${escapeHTML(v)}">${escapeHTML(v)}</option>`).join(""); if([...el.options].some(o=>o.value===current))el.value=current; });
   }
 
-  function filteredMatrices() {
-    const q=matrixValue($("matrixSearch")?.value).toLowerCase();
-    const species=$("matrixSpeciesFilter")?.value||"", type=$("matrixTypeFilter")?.value||"", strain=$("matrixStrainFilter")?.value||"";
-    return matrixSamples.filter(x=>{
-      const hay=[x.species,x.matrix_type,x.strain,x.sex,x.storage_location,x.quantity,x.unit].map(matrixValue).join(" ").toLowerCase();
-      return (!q||hay.includes(q)) && (!species||matrixValue(x.species)===species) && (!type||matrixValue(x.matrix_type)===type) && (!strain||matrixValue(x.strain)===strain);
-    });
+  function filteredMatrices(){
+    const q=matrixValue($("matrixSearch")?.value).toLowerCase(); const species=$("matrixSpeciesFilter")?.value||"", type=$("matrixTypeFilter")?.value||"", strain=$("matrixStrainFilter")?.value||"";
+    return matrixSamples.filter(x=>{ const locationText=matrixRows(x.id).map(r=>storagePath(r.location_id)).join(" "); const hay=[x.species,x.matrix_type,x.strain,x.sex,locationText,matrixUnit(x.id)].map(matrixValue).join(" ").toLowerCase(); return(!q||hay.includes(q))&&(!species||matrixValue(x.species)===species)&&(!type||matrixValue(x.matrix_type)===type)&&(!strain||matrixValue(x.strain)===strain); });
   }
 
-  function renderMatrices() {
-    const box=$("matrixInventory"); if(!box) return; const rows=filteredMatrices();
-    if(!matrixSamples.length){ box.innerHTML='<div class="matrix-empty"><div><div class="icon">🧫</div><h3>No biological matrices yet.</h3><p class="helper">Use “Add Matrix” to create the first inventory record.</p></div></div>'; return; }
-    if(!rows.length){ box.innerHTML='<div class="matrix-empty" style="min-height:220px"><div><div class="icon">🔎</div><h3>No matching matrices.</h3><p class="helper">Try another search term or clear a filter.</p></div></div>'; return; }
-    box.innerHTML=`<div class="table-wrapper"><table><thead><tr><th>SPECIES</th><th>MATRIX</th><th>STRAIN</th><th>SEX</th><th>QUANTITY</th><th>UNIT</th><th>STORAGE LOCATION</th></tr></thead><tbody>${rows.map(x=>`<tr><td><strong>${escapeHTML(matrixValue(x.species)||"—")}</strong></td><td>${escapeHTML(matrixValue(x.matrix_type)||"—")}</td><td>${escapeHTML(matrixValue(x.strain)||"—")}</td><td>${escapeHTML(matrixValue(x.sex)||"—")}</td><td><strong>${escapeHTML(matrixValue(x.quantity)||"0")}</strong></td><td>${escapeHTML(matrixValue(x.unit)||"—")}</td><td>${escapeHTML(matrixValue(x.storage_location)||"—")}</td></tr>`).join("")}</tbody></table></div>`;
+  function renderMatrices(){
+    const box=$("matrixInventory"); if(!box)return; const rows=filteredMatrices();
+    if(!matrixSamples.length){box.innerHTML='<div class="matrix-empty"><div><div class="icon">🧫</div><h3>No biological matrices yet.</h3><p class="helper">Use “Add Matrix” to create the first matrix and register its storage.</p></div></div>';return;}
+    if(!rows.length){box.innerHTML='<div class="matrix-empty" style="min-height:220px"><div><div class="icon">🔎</div><h3>No matching matrices.</h3></div></div>';return;}
+    box.innerHTML=`<div class="table-wrapper"><table><thead><tr><th>SPECIES</th><th>MATRIX</th><th>STRAIN</th><th>SEX</th><th>UNIT</th><th>TOTAL</th><th>LOCATIONS</th></tr></thead><tbody>${rows.map(x=>{const inv=matrixRows(x.id),open=expandedMatrices.has(String(x.id));return `<tr class="matrix-summary-row" data-matrix-id="${escapeHTML(x.id)}"><td><span class="expand-icon" style="transform:${open?'rotate(90deg)':'none'}">▶</span><strong>${escapeHTML(matrixValue(x.species)||'—')}</strong></td><td>${escapeHTML(matrixValue(x.matrix_type)||'—')}</td><td>${escapeHTML(matrixValue(x.strain)||'—')}</td><td>${escapeHTML(matrixValue(x.sex)||'—')}</td><td>${escapeHTML(matrixUnit(x.id)||'—')}</td><td><strong>${matrixTotal(x.id)} ${escapeHTML(matrixUnit(x.id))}</strong></td><td>${inv.length}</td></tr><tr class="matrix-location-row" style="display:${open?'table-row':'none'}"><td colspan="7"><div class="matrix-location-panel">${matrixLocationPanelHTML(x)}</div></td></tr>`}).join('')}</tbody></table></div>`;
+    box.querySelectorAll('.matrix-summary-row').forEach(row=>row.addEventListener('click',()=>toggleMatrixDetails(row.dataset.matrixId))); bindMatrixActionButtons();
   }
+  function toggleMatrixDetails(id){ const key=String(id); expandedMatrices.has(key)?expandedMatrices.delete(key):expandedMatrices.add(key); renderMatrices(); }
+  function matrixLocationPanelHTML(m){ const inv=matrixRows(m.id), unit=matrixUnit(m.id); if(!inv.length)return '<p class="helper">No registered storage locations.</p>'; return `<div class="location-list">${inv.map(r=>`<div class="location-card"><div><div class="location-path">📍 ${escapeHTML(storagePath(r.location_id))}</div><div class="muted">Last updated ${r.updated_at?escapeHTML(formatTime(r.updated_at)):'—'}</div></div><div class="location-qty">${Number(r.quantity||0)} ${escapeHTML(unit)}</div><button class="secondary-btn matrix-prefill-btn" data-inventory-id="${r.id}">Use / Update</button></div>`).join('')}</div><div class="matrix-use-row"><div class="wide"><label>Selected Location</label><select id="matrixUseLocation-${m.id}">${inv.map(r=>`<option value="${r.id}">${escapeHTML(storagePath(r.location_id))} — ${Number(r.quantity||0)} ${escapeHTML(unit)}</option>`).join('')}</select></div><div><label>Use Qty</label><input id="matrixUseQty-${m.id}" type="number" min="0.000001" step="any" placeholder="0"></div><div><label>Updated By</label><input id="matrixUseUser-${m.id}" type="text" placeholder="Your name"></div><div class="wide"><label>Note</label><input id="matrixUseNote-${m.id}" type="text" placeholder="Optional"></div><button class="primary-btn matrix-use-btn" data-matrix-id="${m.id}">Use Matrix</button></div>`; }
+  function bindMatrixActionButtons(){ document.querySelectorAll('.matrix-prefill-btn').forEach(b=>b.onclick=e=>{e.stopPropagation();prefillMatrixUse(b.dataset.inventoryId)}); document.querySelectorAll('.matrix-use-btn').forEach(b=>b.onclick=e=>{e.stopPropagation();useMatrix(b.dataset.matrixId)}); }
+  function prefillMatrixUse(inventoryId){ const row=matrixInventory.find(x=>String(x.id)===String(inventoryId)); if(!row)return; expandedMatrices.add(String(row.matrix_id)); renderMatrices(); bindMatrixActionButtons(); setTimeout(()=>{const el=$(`matrixUseLocation-${row.matrix_id}`); if(el)el.value=String(inventoryId);},0); }
+  async function useMatrix(matrixId){ const invId=Number($(`matrixUseLocation-${matrixId}`)?.value), qty=Number($(`matrixUseQty-${matrixId}`)?.value), user=matrixValue($(`matrixUseUser-${matrixId}`)?.value), note=matrixValue($(`matrixUseNote-${matrixId}`)?.value); if(!invId||!Number.isFinite(qty)||qty<=0)return alert('Enter a valid quantity to use.'); if(!user)return alert('Please enter your name.'); const {data:fresh,error:e}=await supabaseClient.from('matrix_inventory').select('*').eq('id',invId).single(); if(e||!fresh)return alert('Could not load the latest matrix inventory.'); const old=Number(fresh.quantity||0), unit=matrixUnit(matrixId); if(qty>old)return alert(`Only ${old} ${unit} are available at this location.`); const next=old-qty; const now=new Date().toISOString(); const {error:u}=await supabaseClient.from('matrix_inventory').update({quantity:next,updated_by:user,updated_at:now}).eq('id',invId); if(u)return alert('Matrix inventory update failed:\n'+u.message); const {error:l}=await supabaseClient.from('matrix_logs').insert({matrix_id:String(matrixId),location_id:Number(fresh.location_id),change_amount:-qty,action_type:'usage',note:note||null,performed_by:user}); if(l)console.error('Matrix log error',l); await refreshAll({preserveForms:true}); alert('Matrix inventory updated successfully.'); }
 
-  function toggleMatrixForm(show){ const p=$("matrixAddPanel"); if(p) p.style.display=show?"block":"none"; }
+  function storageOptionsHTML(selected=''){ return '<option value="">Select storage location…</option>'+storageLocations.map(x=>`<option value="${x.id}" ${String(x.id)===String(selected)?'selected':''}>${escapeHTML(storagePath(x.id))} (${escapeHTML(x.location_type||'Location')})</option>`).join(''); }
+  function renderStorageParentOptions(){ const el=$("storageParent"); if(!el)return; const old=el.value; el.innerHTML='<option value="">None — top level</option>'+storageLocations.map(x=>`<option value="${x.id}">${escapeHTML(storagePath(x.id))}</option>`).join(''); if([...el.options].some(o=>o.value===old))el.value=old; }
+  async function addStorageLocation(){ const name=matrixValue($("storageName")?.value), type=matrixValue($("storageType")?.value), parentRaw=$("storageParent")?.value; if(!name||!type)return alert('Please enter a storage name and type.'); const {error}=await supabaseClient.from('storage_locations').insert({name,location_type:type,parent_id:parentRaw?Number(parentRaw):null,sort_order:0,active:true}); if(error)return alert('Could not add storage location:\n'+error.message); $("storageName").value=''; $("storageType").value=''; $("storageDescription").value=''; await refreshAll({preserveForms:true}); alert('Storage location added.'); }
 
-  async function addMatrixSample(){
-    const payload={species:matrixValue($("matrixSpecies")?.value),matrix_type:matrixValue($("matrixType")?.value),strain:matrixValue($("matrixStrain")?.value)||null,sex:matrixValue($("matrixSex")?.value)||null,quantity:Number($("matrixQuantity")?.value),unit:matrixValue($("matrixUnit")?.value),storage_location:matrixValue($("matrixLocation")?.value)||null};
-    if(!payload.species||!payload.matrix_type||!payload.unit||!Number.isFinite(payload.quantity)||payload.quantity<0){ alert("Please enter Species, Matrix Type, a valid Quantity, and Unit."); return; }
-    const btn=$("matrixAddBtn"); if(btn){btn.disabled=true;btn.textContent="Adding…";}
-    const {error}=await supabaseClient.from("matrix_samples").insert(payload);
-    if(btn){btn.disabled=false;btn.textContent="Add Matrix";}
-    if(error){console.error(error);alert("Could not add matrix: "+error.message);return;}
-    ["matrixSpecies","matrixType","matrixStrain","matrixSex","matrixUnit","matrixLocation"].forEach(id=>{if($(id))$(id).value="";}); if($("matrixQuantity"))$("matrixQuantity").value="0";
-    toggleMatrixForm(false); await loadMatrixSamples(); renderMatrixFilters(); renderMatrices();
-  }
+  function addMatrixLocationEntry(){ const host=$("matrixLocationEntries"); if(!host)return; const id=++matrixLocationEntryCounter; const div=document.createElement('div'); div.className='location-entry'; div.dataset.entryId=id; div.innerHTML=`<div class="location-entry-head"><strong>Storage Location</strong><button class="soft-btn" type="button" onclick="this.closest('.location-entry').remove()">Remove</button></div><div class="form-row"><label>Location *</label><select class="matrix-entry-location">${storageOptionsHTML()}</select></div><div class="form-row"><label>Quantity *</label><input class="matrix-entry-quantity" type="number" min="0" step="any" value="0"></div>`; host.appendChild(div); }
+  function resetMatrixLocationEntries(){ const host=$("matrixLocationEntries"); if(host)host.innerHTML=''; matrixLocationEntryCounter=0; addMatrixLocationEntry(); }
+  function refreshMatrixLocationSelects(){ document.querySelectorAll('.matrix-entry-location').forEach(el=>{const old=el.value; el.innerHTML=storageOptionsHTML(old); if([...el.options].some(o=>o.value===old))el.value=old;}); }
+  async function addMatrixSample(){ const payload={species:matrixValue($("matrixSpecies")?.value),matrix_type:matrixValue($("matrixType")?.value),strain:matrixValue($("matrixStrain")?.value)||null,sex:matrixValue($("matrixSex")?.value)||null,unit:matrixValue($("matrixUnit")?.value),created_by:null}; if(!payload.species||!payload.matrix_type||!payload.unit)return alert('Please enter Species, Matrix Type, and Unit.'); const entries=[...document.querySelectorAll('#matrixLocationEntries .location-entry')].map(el=>({location_id:Number(el.querySelector('.matrix-entry-location').value),quantity:Number(el.querySelector('.matrix-entry-quantity').value)})); if(!entries.length||entries.some(x=>!x.location_id||!Number.isFinite(x.quantity)||x.quantity<0))return alert('Please complete every storage location and quantity.'); if(new Set(entries.map(x=>x.location_id)).size!==entries.length)return alert('The same storage location cannot be added twice for one matrix.'); const btn=$("matrixAddBtn"); if(btn){btn.disabled=true;btn.textContent='Adding…';} const {data:m,error}=await supabaseClient.from('matrix_samples').insert(payload).select().single(); if(error){if(btn){btn.disabled=false;btn.textContent='🧫 Add Matrix & Register Inventory';}return alert('Could not add matrix: '+error.message);} const now=new Date().toISOString(); const inventoryRows=entries.map(x=>({matrix_id:m.id,location_id:x.location_id,quantity:x.quantity,updated_at:now})); const {error:ie}=await supabaseClient.from('matrix_inventory').insert(inventoryRows); if(ie){if(btn){btn.disabled=false;btn.textContent='🧫 Add Matrix & Register Inventory';}return alert('Matrix was created, but storage registration failed: '+ie.message);} for(const x of entries){await supabaseClient.from('matrix_logs').insert({matrix_id:m.id,location_id:x.location_id,change_amount:x.quantity,action_type:'register',note:'Initial registration',performed_by:null});} if(btn){btn.disabled=false;btn.textContent='🧫 Add Matrix & Register Inventory';} ['matrixSpecies','matrixType','matrixStrain','matrixSex'].forEach(id=>{if($(id))$(id).value='';}); if($("matrixUnit"))$("matrixUnit").value='tube'; resetMatrixLocationEntries(); await refreshAll({preserveForms:true}); alert('Matrix and storage inventory registered successfully.'); }
+
+  function renderStorageTree(){ const box=$("storageTree"); if(!box)return; const roots=storageLocations.filter(x=>!x.parent_id); const nodeHTML=node=>{const kids=storageLocations.filter(x=>Number(x.parent_id)===Number(node.id)); return `<div class="storage-node"><div class="storage-node-head"><button class="soft-btn" style="text-align:left;flex:1" onclick="selectStorageNode(${node.id})"><span class="storage-node-title">${escapeHTML(node.name)}</span> <span class="storage-badge">${escapeHTML(node.location_type||'Location')}</span></button></div>${kids.length?`<div class="storage-children">${kids.map(nodeHTML).join('')}</div>`:''}</div>`}; box.innerHTML=roots.length?roots.map(nodeHTML).join(''):'<div class="muted">No storage locations yet. Add them from Advanced Update.</div>'; }
+  function selectStorageNode(id){ selectedStorageNodeId=Number(id); renderStorageContents(); }
+  function renderStorageContents(){ const box=$("storageContents"),title=$("storageContentsTitle"); if(!box)return; let ids=null; if(selectedStorageNodeId){ids=descendantStorageIds(selectedStorageNodeId); const n=storageById(selectedStorageNodeId); if(title)title.textContent=n?storagePath(n.id):'Storage';} else if(title)title.textContent='All Storage'; const rows=matrixInventory.filter(x=>!ids||ids.has(Number(x.location_id))); if(!rows.length){box.innerHTML='<div class="muted">No matrix inventory is registered under this location.</div>';return;} box.innerHTML=rows.map(r=>{const m=matrixSamples.find(x=>String(x.id)===String(r.matrix_id));return `<div class="storage-result-card"><strong>${escapeHTML(m?.species||'')} ${escapeHTML(m?.matrix_type||'Matrix')}</strong> · ${Number(r.quantity||0)} ${escapeHTML(matrixUnit(r.matrix_id))}<div class="storage-path-line">📍 ${escapeHTML(storagePath(r.location_id))}</div></div>`}).join(''); }
 
 
   function formatTime(value) {
@@ -941,7 +1005,7 @@
   }
 
   /* ---------- SPA navigation ---------- */
-  const validViews = ["home","buffers","matrices","advanced","logs","orders","messages"];
+  const validViews = ["home","buffers","matrices","storage","advanced","logs","orders","messages"];
 
   function goToView(view) {
     if (!validViews.includes(view)) view = "home";
@@ -956,11 +1020,12 @@
     document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.view === view));
     if (view === "home") renderHome();
     if (view === "buffers") { renderInventory(); renderLowStockAlerts(); renderAlarmSettings(); renderBufferStats(); }
-    if (view === "logs") { renderUsageFilters(); renderUsageChart(); renderLogs(); }
+    if (view === "logs") { renderUsageFilters(); renderUsageChart(); renderMatrixUsageFilters(); renderMatrixUsageChart(); renderLogs(); renderMatrixLogs(); }
     if (view === "orders") renderStandingOrders();
     if (view === "messages") updateMessageReagentDropdown();
     if (view === "advanced") { updateReagentDropdown(); updateAdminForm(); }
     if (view === "matrices") { renderMatrixFilters(); renderMatrices(); }
+    if (view === "storage") { renderStorageTree(); renderStorageContents(); }
   }
 
   window.addEventListener("hashchange", () => renderActiveView(location.hash.replace("#","") || "home"));
@@ -1053,9 +1118,14 @@
     return true;
   }
 
-  async function refreshAll() {
+  async function loadStorageLocations(){ const {data,error}=await supabaseClient.from("storage_locations").select("*").eq("active",true).order("name",{ascending:true}); if(error){console.error(error);setStatus("Storage database error: "+error.message,"error");return false;} storageLocations=data||[]; return true; }
+  async function loadMatrixInventory(){ const {data,error}=await supabaseClient.from("matrix_inventory").select("*").order("updated_at",{ascending:false}); if(error){console.error(error);setStatus("Matrix inventory error: "+error.message,"error");return false;} matrixInventory=data||[]; return true; }
+  async function loadMatrixLogs(){ const {data,error}=await supabaseClient.from("matrix_logs").select("*").order("created_at",{ascending:false}); if(error){console.error(error);setStatus("Matrix log error: "+error.message,"error");return false;} matrixLogs=data||[]; return true; }
+
+  async function refreshAll(options={}) {
+    const formState = options.preserveForms === false ? null : captureAdvancedFormState();
     setStatus("Loading database…","loading");
-    const ok = await Promise.all([loadReagents(),loadLots(),loadLogs(),loadStandingOrders(),loadMatrixSamples()]);
+    const ok = await Promise.all([loadReagents(),loadLots(),loadLogs(),loadStandingOrders(),loadMatrixSamples(),loadStorageLocations(),loadMatrixInventory(),loadMatrixLogs()]);
     if (ok.every(Boolean)) {
       updateReagentDropdown();
       updateMessageReagentDropdown();
@@ -1068,8 +1138,8 @@
       renderStandingOrders();
       renderUsageFilters();
       renderUsageChart();
-      renderMatrixFilters();
-      renderMatrices();
+      renderMatrixFilters(); renderMatrices(); renderStorageParentOptions(); refreshMatrixLocationSelects(); renderStorageTree(); renderStorageContents(); renderMatrixLogs(); renderMatrixUsageFilters(); renderMatrixUsageChart();
+      if (formState) restoreAdvancedFormState(formState);
       setStatus("● Connected to Supabase","success");
     }
   }
@@ -1084,10 +1154,7 @@
     if ($("homeStatExpiring")) $("homeStatExpiring").textContent = expiringLotCount();
     if ($("homeStatQty")) $("homeStatQty").textContent = totalQty;
 
-    const matrixTotalQty = matrixSamples.reduce((sum, item) => {
-      const q = Number(item.quantity);
-      return sum + (Number.isFinite(q) ? q : 0);
-    }, 0);
+    const matrixTotalQty = matrixInventory.reduce((sum, item) => sum + (Number.isFinite(Number(item.quantity)) ? Number(item.quantity) : 0), 0);
     const matrixSpeciesCount = new Set(matrixSamples.map(x => matrixValue(x.species).toLowerCase()).filter(Boolean)).size;
     const matrixTypeCount = new Set(matrixSamples.map(x => matrixValue(x.matrix_type).toLowerCase()).filter(Boolean)).size;
     if ($("homeMatrixRecords")) $("homeMatrixRecords").textContent = matrixSamples.length;
@@ -1099,9 +1166,9 @@
     if (!box) return;
     if (!logs.length) { box.innerHTML = '<div class="muted">No activity yet.</div>'; return; }
     box.innerHTML = logs.slice(0,5).map(log => {
-      const bad = ["EXPIRED","INPUT_ERROR"].includes(log.action);
-      const warn = ["PHYSICAL_COUNT"].includes(log.action);
-      return `<div class="activity"><span class="dot ${bad?"bad":warn?"warn":""}"></span><div><strong>${escapeHTML(log.code || "")}</strong> · ${escapeHTML(log.action || "")}${log.change_text ? `<br><span class="muted">${escapeHTML(log.change_text)}</span>` : ""}</div><time>${formatTime(log.created_at)}</time></div>`;
+      const bad = ["EXPIRED","INPUT_ERROR"].includes(log.action_type);
+      const warn = ["PHYSICAL_COUNT"].includes(log.action_type);
+      return `<div class="activity"><span class="dot ${bad?"bad":warn?"warn":""}"></span><div><strong>${escapeHTML(log.code || "")}</strong> · ${escapeHTML(log.action || "")}${log.change_text ? `<br><span class="muted">${escapeHTML(((Number(log.change_amount)>0?'+':'')+Number(log.change_amount||0)+' '+matrixUnit(log.matrix_id)))}</span>` : ""}</div><time>${formatTime(log.created_at)}</time></div>`;
     }).join("");
   }
 
@@ -1260,11 +1327,12 @@
   }
 
   function updateLotDropdown() {
-    const select = $("lotSelect"); if (!select || !$("reagentSelect")) return;
-    const reagentId = Number($("reagentSelect").value); const rs = reagentLots(reagentId); select.innerHTML="";
-    if (!rs.length) { select.innerHTML = `<option value="">No lots available</option>`; return; }
-    rs.forEach(lot=>{ const opt=document.createElement("option"); opt.value=lot.id; opt.textContent=`${lot.lot_number} | Exp ${formatDate(lot.expiration_date)} | ${lot.unopened_count} unopened`; select.appendChild(opt); });
+    const select=$("lotSelect"); if(!select||!$("reagentSelect"))return; const old=select.value; const reagentId=Number($("reagentSelect").value),rs=reagentLots(reagentId); select.innerHTML=""; if(!rs.length){select.innerHTML='<option value="">No lots available</option>';} else {rs.forEach(lot=>{const opt=document.createElement('option');opt.value=lot.id;opt.textContent=`${lot.lot_number} | Exp ${formatDate(lot.expiration_date)} | ${lot.unopened_count} unopened`;select.appendChild(opt);}); if(rs.some(x=>String(x.id)===String(old)))select.value=old;} updateNewStockLotDropdown();
   }
+  function updateNewStockLotDropdown(){ const el=$("newStockLotChoice"); if(!el||!$("reagentSelect"))return; const old=el.value; const rs=reagentLots(Number($("reagentSelect").value)); el.innerHTML='<option value="NEW">＋ Enter a new lot</option>'+rs.map(l=>`<option value="${l.id}">${escapeHTML(l.lot_number)} — Exp ${formatDate(l.expiration_date)} — ${l.unopened_count} unopened</option>`).join(''); if(old==='NEW'||rs.some(x=>String(x.id)===String(old)))el.value=old; else el.value='NEW'; updateNewStockLotMode(); }
+  function updateNewStockLotMode(){ const choice=$("newStockLotChoice")?.value||'NEW',isNew=choice==='NEW'; if($("newStockNewLotFields"))$("newStockNewLotFields").style.display=isNew?'grid':'none'; if($("existingNewStockLot"))$("existingNewStockLot").style.display=isNew?'none':'grid'; if(!isNew){const lot=lots.find(x=>String(x.id)===String(choice)); if(lot){$("existingLotNumberDisplay").value=lot.lot_number||''; $("existingExpirationDisplay").value=lot.expiration_date||'';}} }
+  function captureAdvancedFormState(){ const ids=['reagentSelect','actionSelect','lotSelect','newStockLotChoice','newLotNumber','newExpirationDate','newStockQuantity','adminQuantity','actualUnopened','correctUnopened','updatedBy','note']; const out={}; ids.forEach(id=>{if($(id))out[id]=$(id).value;}); return out; }
+  function restoreAdvancedFormState(state){ if(!state)return; if($("reagentSelect")&&[...$("reagentSelect").options].some(o=>o.value===state.reagentSelect))$("reagentSelect").value=state.reagentSelect; updateLotDropdown(); if($("actionSelect")&&state.actionSelect)$("actionSelect").value=state.actionSelect; updateAdminForm(); ['lotSelect','newStockLotChoice','newLotNumber','newExpirationDate','newStockQuantity','adminQuantity','actualUnopened','correctUnopened','updatedBy','note'].forEach(id=>{const el=$(id); if(!el||state[id]==null)return; if(el.tagName==='SELECT'){if([...el.options].some(o=>o.value===state[id]))el.value=state[id];}else el.value=state[id];}); updateNewStockLotMode(); }
 
   function updateAdminForm() {
     if (!$("actionSelect")) return;
@@ -1277,6 +1345,7 @@
     $("physicalCountArea").style.display = action === "PHYSICAL_COUNT" ? "block":"none";
     $("errorCorrectionArea").style.display = action === "INPUT_ERROR" ? "block":"none";
     if (existingLot) updateLotDropdown();
+    if (newStock) updateNewStockLotDropdown();
   }
 
   function validWholeNumber(raw,min=0) {
@@ -1302,9 +1371,9 @@
     if (!reagent) return alert("Please select a reagent."); if (!user) return alert("Please enter your name.");
 
     if (action === "NEW_STOCK") {
-      const lotNumber=$("newLotNumber").value.trim(); const expirationDate=$("newExpirationDate").value; const quantity=validWholeNumber($("newStockQuantity").value,1);
-      if (!lotNumber) return alert("Please enter a lot number."); if (!expirationDate) return alert("Please enter an expiration date."); if (quantity===null) return alert("Quantity must be a positive whole number.");
-      const existing=lots.find(l=>Number(l.reagent_id)===reagentId && String(l.lot_number).trim().toUpperCase()===lotNumber.toUpperCase());
+      const lotChoice=$("newStockLotChoice")?.value||"NEW"; const selectedExisting=lotChoice!=="NEW"?lots.find(l=>Number(l.id)===Number(lotChoice)&&Number(l.reagent_id)===reagentId):null; const lotNumber=selectedExisting?String(selectedExisting.lot_number):$("newLotNumber").value.trim(); const expirationDate=selectedExisting?selectedExisting.expiration_date:$("newExpirationDate").value; const quantity=validWholeNumber($("newStockQuantity").value,1);
+      if (!lotNumber) return alert("Please enter or select a lot number."); if (!expirationDate) return alert("Please enter an expiration date."); if (quantity===null) return alert("Quantity must be a positive whole number.");
+      const existing=selectedExisting||lots.find(l=>Number(l.reagent_id)===reagentId && String(l.lot_number).trim().toUpperCase()===lotNumber.toUpperCase());
       if (existing) {
         if (existing.expiration_date && existing.expiration_date!==expirationDate) return alert(`Lot ${lotNumber} already exists.\n\nExisting expiration: ${formatDate(existing.expiration_date)}\nEntered expiration: ${formatDate(expirationDate)}\n\nPlease verify the lot number or expiration date.`);
         const oldCount=Number(existing.unopened_count||0); const newCount=oldCount+quantity;
@@ -1339,7 +1408,7 @@
   function renderLogs() {
     const table=$("logTable"); if (!table) return; table.innerHTML="";
     if (!logs.length) { table.innerHTML=`<tr><td colspan="7">No logs yet.</td></tr>`; return; }
-    logs.forEach(log=>{ const row=document.createElement("tr"); row.innerHTML=`<td>${formatTime(log.created_at)}</td><td>${escapeHTML(log.user_name||"—")}</td><td>${escapeHTML(log.code)}</td><td>${escapeHTML(log.name)}</td><td>${escapeHTML(log.action)}</td><td>${escapeHTML(log.change_text)}</td><td>${escapeHTML(log.note||"")}</td>`; table.appendChild(row); });
+    logs.forEach(log=>{ const row=document.createElement("tr"); row.innerHTML=`<td>${formatTime(log.created_at)}</td><td>${escapeHTML(log.user_name||"—")}</td><td>${escapeHTML(log.code)}</td><td>${escapeHTML(log.name)}</td><td>${escapeHTML(log.action_type)}</td><td>${escapeHTML(((Number(log.change_amount)>0?'+':'')+Number(log.change_amount||0)+' '+matrixUnit(log.matrix_id)))}</td><td>${escapeHTML(log.note||"")}</td>`; table.appendChild(row); });
   }
 
   function usageQuantityFromLog(log) {
@@ -1360,41 +1429,20 @@
 
   function selectAllUsageBuffers() { reagents.forEach(r=>usageSelected.add(Number(r.id))); renderUsageFilters(); renderUsageChart(); }
 
-  function monthKey(date) { return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}`; }
-  function monthLabel(key) { const [y,m]=key.split("-").map(Number); return new Date(y,m-1,1).toLocaleDateString(undefined,{month:"short",year:"numeric"}); }
+  function startOfWeek(date){ const d=new Date(date); d.setHours(0,0,0,0); const day=d.getDay(); const diff=(day+6)%7; d.setDate(d.getDate()-diff); return d; }
+  function weekKey(date){ const d=startOfWeek(date); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+  function weekLabel(key){ const [y,m,d]=key.split('-').map(Number); const start=new Date(y,m-1,d),end=new Date(start); end.setDate(end.getDate()+6); return `${start.toLocaleDateString(undefined,{month:'short',day:'numeric'})}–${end.toLocaleDateString(undefined,{month:'short',day:'numeric'})}`; }
+  function weeklyKeys(rangeMonths, sourceDates){ let start; const end=startOfWeek(new Date()); if(rangeMonths==='all'){ start=sourceDates.length?startOfWeek(new Date(Math.min(...sourceDates.map(x=>new Date(x).getTime())))):end; } else {start=new Date(); start.setMonth(start.getMonth()-Number(rangeMonths)); start=startOfWeek(start);} const keys=[]; for(let cur=new Date(start);cur<=end&&keys.length<520;cur.setDate(cur.getDate()+7))keys.push(weekKey(cur)); return keys.length?keys:[weekKey(new Date())]; }
+  function usageLogsInRange(){ const all=logs.filter(l=>l.action==='OPEN_BOTTLE'&&usageQuantityFromLog(l)>0&&l.created_at); if(usageRangeMonths==='all')return all; const cutoff=new Date();cutoff.setMonth(cutoff.getMonth()-Number(usageRangeMonths));return all.filter(l=>new Date(l.created_at)>=cutoff); }
+  function renderUsageChart(){ const canvas=$("usageChart"); if(!canvas||typeof Chart==='undefined')return; const source=usageLogsInRange(),keys=weeklyKeys(usageRangeMonths,source.map(x=>x.created_at)); const palette=['#3f8fd2','#45a47a','#e6a21d','#8069d9','#d75c73','#25a7a2','#ec8840','#607d8b']; const selectedReagents=reagents.filter(r=>usageSelected.has(Number(r.id))); const datasets=selectedReagents.map((r,i)=>{const totals=Object.fromEntries(keys.map(k=>[k,0]));source.filter(l=>Number(l.reagent_id)===Number(r.id)||String(l.code)===String(r.code)).forEach(l=>{const k=weekKey(new Date(l.created_at));if(k in totals)totals[k]+=usageQuantityFromLog(l);});return{label:`${r.code} — ${r.name}`,data:keys.map(k=>totals[k]||0),borderColor:palette[i%palette.length],backgroundColor:palette[i%palette.length],tension:.28,borderWidth:2.2,pointRadius:2,pointHoverRadius:5,fill:false};}); if(usageChartInstance)usageChartInstance.destroy(); usageChartInstance=new Chart(canvas,{type:'line',data:{labels:keys.map(weekLabel),datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:datasets.length>1,position:'bottom'},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y} bottle${ctx.parsed.y===1?'':'s'} used`}}},scales:{y:{beginAtZero:true,ticks:{precision:0},title:{display:true,text:'Bottles Used / Week'}},x:{grid:{display:false},ticks:{autoSkip:true,maxTicksLimit:12}}}}}); }
+  document.querySelectorAll('.buffer-range .range-btn').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.buffer-range .range-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');usageRangeMonths=btn.dataset.range==='all'?'all':Number(btn.dataset.range);renderUsageChart();}));
 
-  function usageLogsInRange() {
-    const all=logs.filter(l=>l.action==="OPEN_BOTTLE" && usageQuantityFromLog(l)>0 && l.created_at);
-    if (usageRangeMonths === "all") return all;
-    const cutoff=new Date(); cutoff.setMonth(cutoff.getMonth()-Number(usageRangeMonths)+1); cutoff.setDate(1); cutoff.setHours(0,0,0,0);
-    return all.filter(l=>new Date(l.created_at)>=cutoff);
-  }
-
-  function renderUsageChart() {
-    const canvas=$("usageChart"); if (!canvas || typeof Chart === "undefined") return;
-    const source=usageLogsInRange();
-    let start;
-    if (usageRangeMonths === "all") {
-      start=source.length ? new Date(Math.min(...source.map(x=>new Date(x.created_at).getTime()))) : new Date(); start.setDate(1);
-    } else { start=new Date(); start.setMonth(start.getMonth()-Number(usageRangeMonths)+1); start.setDate(1); start.setHours(0,0,0,0); }
-    const end=new Date(); end.setDate(1); end.setHours(0,0,0,0);
-    const keys=[]; const cur=new Date(start.getFullYear(),start.getMonth(),1);
-    while (cur<=end && keys.length<60) { keys.push(monthKey(cur)); cur.setMonth(cur.getMonth()+1); }
-    if (!keys.length) keys.push(monthKey(new Date()));
-
-    const palette=["#3f8fd2","#45a47a","#e6a21d","#8069d9","#d75c73","#25a7a2","#ec8840","#607d8b"];
-    const selectedReagents=reagents.filter(r=>usageSelected.has(Number(r.id)));
-    const datasets=selectedReagents.map((r,i)=>{
-      const totals=Object.fromEntries(keys.map(k=>[k,0]));
-      source.filter(l=>Number(l.reagent_id)===Number(r.id) || String(l.code)===String(r.code)).forEach(l=>{ const key=monthKey(new Date(l.created_at)); if(key in totals) totals[key]+=usageQuantityFromLog(l); });
-      return { label:`${r.code} — ${r.name}`, data:keys.map(k=>totals[k]||0), borderColor:palette[i%palette.length], backgroundColor:palette[i%palette.length], tension:.32, borderWidth:2.4, pointRadius:3, pointHoverRadius:5, fill:false };
-    });
-
-    if (usageChartInstance) usageChartInstance.destroy();
-    usageChartInstance=new Chart(canvas,{ type:"line", data:{labels:keys.map(monthLabel),datasets}, options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},plugins:{legend:{display:datasets.length>1,position:"bottom",labels:{boxWidth:10,usePointStyle:true,font:{size:10}}},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y} bottle${ctx.parsed.y===1?"":"s"} used`}}},scales:{y:{beginAtZero:true,ticks:{precision:0},title:{display:true,text:"Bottles Used"}},x:{grid:{display:false}}}} });
-  }
-
-  document.querySelectorAll(".range-btn").forEach(btn=>btn.addEventListener("click",()=>{ document.querySelectorAll(".range-btn").forEach(b=>b.classList.remove("active")); btn.classList.add("active"); usageRangeMonths=btn.dataset.range==="all"?"all":Number(btn.dataset.range); renderUsageChart(); }));
+  function renderMatrixLogs(){ const table=$("matrixLogTable"); if(!table)return; if(!matrixLogs.length){table.innerHTML='<tr><td colspan="7">No matrix logs yet.</td></tr>';return;} table.innerHTML=matrixLogs.map(log=>{const m=matrixSamples.find(x=>String(x.id)===String(log.matrix_id));return `<tr><td>${formatTime(log.created_at)}</td><td>${escapeHTML(log.performed_by||'—')}</td><td>${escapeHTML([m?.species,m?.matrix_type,m?.strain].filter(Boolean).join(' · ')||'—')}</td><td>${escapeHTML(storagePath(log.location_id))}</td><td>${escapeHTML(log.action_type||'')}</td><td>${escapeHTML((Number(log.change_amount)>0?'+':'')+Number(log.change_amount||0)+' '+matrixUnit(log.matrix_id))}</td><td>${escapeHTML(log.note||'')}</td></tr>`}).join(''); }
+  function renderMatrixUsageFilters(){ const box=$("matrixUsageList"); if(!box)return; if(!matrixSamples.length){box.innerHTML='<div class="muted">No matrices available.</div>';return;} if(!matrixUsageSelected.size)matrixUsageSelected.add(String(matrixSamples[0].id)); box.innerHTML=matrixSamples.map(m=>`<label class="usage-check"><input type="checkbox" data-matrix-usage-id="${m.id}" ${matrixUsageSelected.has(String(m.id))?'checked':''}><span><strong>${escapeHTML(m.species||'')} ${escapeHTML(m.matrix_type||'')}</strong><br>${escapeHTML(m.strain||'')} ${escapeHTML(matrixUnit(m.id))}</span></label>`).join(''); box.querySelectorAll('input').forEach(cb=>cb.addEventListener('change',()=>{const id=String(cb.dataset.matrixUsageId);cb.checked?matrixUsageSelected.add(id):matrixUsageSelected.delete(id);renderMatrixUsageChart();})); }
+  function selectAllMatrixUsage(){matrixSamples.forEach(m=>matrixUsageSelected.add(String(m.id)));renderMatrixUsageFilters();renderMatrixUsageChart();}
+  function matrixUsageLogsInRange(){const all=matrixLogs.filter(l=>l.action_type==='usage'&&Number(l.change_amount)<0&&l.created_at);if(matrixUsageRangeMonths==='all')return all;const cutoff=new Date();cutoff.setMonth(cutoff.getMonth()-Number(matrixUsageRangeMonths));return all.filter(l=>new Date(l.created_at)>=cutoff);}
+  function renderMatrixUsageChart(){const canvas=$("matrixUsageChart");if(!canvas||typeof Chart==='undefined')return;const source=matrixUsageLogsInRange(),keys=weeklyKeys(matrixUsageRangeMonths,source.map(x=>x.created_at)),palette=['#3f8fd2','#45a47a','#e6a21d','#8069d9','#d75c73','#25a7a2','#ec8840','#607d8b'];const selected=matrixSamples.filter(m=>matrixUsageSelected.has(String(m.id)));const datasets=selected.map((m,i)=>{const totals=Object.fromEntries(keys.map(k=>[k,0]));source.filter(l=>String(l.matrix_id)===String(m.id)).forEach(l=>{const k=weekKey(new Date(l.created_at));if(k in totals)totals[k]+=Math.abs(Number(l.change_amount||0));});const unit=matrixUnit(m.id);return{label:`${m.species||''} ${m.matrix_type||''}${m.strain?' · '+m.strain:''} (${unit})`,data:keys.map(k=>totals[k]||0),borderColor:palette[i%palette.length],backgroundColor:palette[i%palette.length],tension:.28,borderWidth:2.2,pointRadius:2,pointHoverRadius:5,fill:false};});if(matrixUsageChartInstance)matrixUsageChartInstance.destroy();matrixUsageChartInstance=new Chart(canvas,{type:'line',data:{labels:keys.map(weekLabel),datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:true,position:'bottom'},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y} used`}}},scales:{y:{beginAtZero:true,title:{display:true,text:'Quantity Consumed / Week'}},x:{grid:{display:false},ticks:{autoSkip:true,maxTicksLimit:12}}}}});}
+  document.querySelectorAll('.matrix-range .range-btn').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.matrix-range .range-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');matrixUsageRangeMonths=btn.dataset.matrixRange==='all'?'all':Number(btn.dataset.matrixRange);renderMatrixUsageChart();}));
 
   /* ---------- Standing orders ---------- */
   function renderStandingOrders() {
@@ -1431,7 +1479,7 @@
   $("bufferSearch")?.addEventListener("input",renderInventory);
   $("globalSearch")?.addEventListener("input",event=>{
     const term=event.target.value.trim(); if(!term) return; const q=term.toLowerCase();
-    const matrixHit=matrixSamples.some(x=>[x.species,x.matrix_type,x.strain,x.sex,x.storage_location,x.unit].map(matrixValue).join(" ").toLowerCase().includes(q));
+    const matrixHit=matrixSamples.some(x=>[x.species,x.matrix_type,x.strain,x.sex,matrixRows(x.id).map(r=>storagePath(r.location_id)).join(' '),matrixUnit(x.id)].map(matrixValue).join(" ").toLowerCase().includes(q));
     const bufferHit=reagents.some(r=>bufferMatchesSearch(r,term));
     if(matrixHit && !bufferHit){ goToView("matrices"); setTimeout(()=>{if($("matrixSearch")){ $("matrixSearch").value=term; renderMatrices();}},0); }
     else { goToView("buffers"); setTimeout(()=>{if($("bufferSearch")){ $("bufferSearch").value=term; renderInventory();}},0); }
@@ -1440,6 +1488,7 @@
   document.addEventListener("keydown",e=>{ if ((e.metaKey||e.ctrlKey) && e.key.toLowerCase()==="k") { e.preventDefault(); $("globalSearch")?.focus(); } });
 
   updateAdminForm();
+  resetMatrixLocationEntries();
   renderActiveView(location.hash.replace("#","") || "home");
   refreshAll();
   setInterval(()=>{ if(!hasPendingQuickChanges()) refreshAll(); },5000);
